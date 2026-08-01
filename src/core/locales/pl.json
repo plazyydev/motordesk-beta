@@ -1,0 +1,48 @@
+{
+    "LoginView": {
+        "title": "Logowanie",
+        "username": "Nazwa użytkownika",
+        "password": "Hasło",
+        "client": "Firma",
+        "button": "Zaloguj się",
+        "rememberMe": "Pozostań zalogowany",
+        "failed": "Logowanie nie powiodło się. Proszę sprawdzić dane logowania.",
+        "EMPTY_FIELDS": "Proszę podać nazwę użytkownika i hasło.",
+        "USER_NOT_FOUND": "Użytkownik nie został znaleziony.",
+        "WRONG_PASSWORD": "Nieprawidłowe hasło.",
+        "ERROR": "Błąd logowania. Proszę spróbować ponownie.",
+        "ERROR_LOADING_CLIENTS": "Błąd podczas ładowania firm. Proszę spróbować później.",
+        "USER_NOT_ASSIGNED_TO_CLIENT": "Użytkownik nie jest przypisany do firmy.",
+        "PASSWORD_FILE_NOT_FOUND": "Błąd: Plik hasła api/config/api.passwd.php nie został znaleziony. Proszę zmienić nazwę pliku api/config/api.passwd.php.example na api/config/api.passwd.php i dostosować ustawienia.",
+        "CONFIG_FILE_NOT_FOUND": "Błąd: Plik konfiguracyjny nie został znaleziony. Proszę sprawdzić ustawienia.",
+        "updateButton": "Wykonaj aktualizację",
+        "updateSuccess": "Aktualizacja bazy danych zakończona pomyślnie.",
+        "updateError": "Błąd podczas aktualizacji bazy danych. Proszę spróbować ponownie.",
+        "privacy": "Polityka prywatności",
+        "dataDeletion": "Usuwanie danych"
+    },
+    "NotFoundView": {
+        "title": "Strona nie znaleziona",
+        "message": "Żądana strona nie została znaleziona.",
+        "back_home": "Powrót do strony głównej"
+    },
+    "NavbarView": {
+        "logoutTooltip": "Wyloguj się",
+        "accountTooltip": "Konto",
+        "editCustomerTooltip": "Edytuj klienta",
+        "editCvTooltip": "Edytuj klienta/dostawcę",
+        "currentC": "Klient:",
+        "currentV": "Dostawca:",
+        "demoBanner": "Tryb demo — Wszystkie dane zostaną automatycznie zresetowane po okresie nieaktywności.",
+        "demoResetWarning": "Demo zostanie zresetowane za {seconds} sekund — porusz myszą, aby kontynuować."
+    },
+    "ErrorView": {
+        "title": "Wystąpił błąd",
+        "message": "Przepraszamy, wystąpił nieoczekiwany błąd.",
+        "debugInfo": "Informacje debugowania:",
+        "clickToShowDetails": "Kliknij, aby wyświetlić szczegóły"
+    },
+    "App": {
+        "loading": "Proszę czekać..."
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Criar novo",
+        "newCarFromScan": "Lista de digitalização",
+        "title": "Veículos",
+        "manageCars": "Gerir",
+        "orderSearch": "Lista de encomendas",
+        "huSerienbrief": "Notificações de inspeção",
+        "orderSearchTooltip": "Pesquisa de encomendas",
+        "scanTooltip": "Veículos de digitalização"
+    },
+    "PartsRequests": {
+        "title": "Peças de reposição",
+        "search": "Pesquisar artigo...",
+        "freetext": "Ou texto livre",
+        "qty": "Qtd.",
+        "note": "Nota",
+        "add": "Solicitar",
+        "empty": "Nenhuma peça de reposição solicitada",
+        "description": "Descrição",
+        "status": "Estado",
+        "requestedBy": "Solicitado por",
+        "pending": "Solicitado",
+        "ordered": "Encomendado",
+        "revertToPending": "Voltar a pendente",
+        "delete": "Eliminar"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Fechar",
+        "fields": {
+            "c_bf": "Líquido de travões",
+            "c_sk": "Corrente de distribuição",
+            "c_wd": "Próxima revisão",
+            "c_zrd": "Data da correia de distribuição",
+            "c_zrk": "Km da correia de distribuição"
+        },
+        "incompleteText": "Antes de concluir a encomenda, os seguintes campos devem ser preenchidos:",
+        "incompleteTitle": "Dados de manutenção incompletos",
+        "title": "Manutenção e serviço"
+    }
+}

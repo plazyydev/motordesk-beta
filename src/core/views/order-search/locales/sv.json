@@ -1,0 +1,49 @@
+{
+    "OrderSearchView": {
+        "title": "Ordersok",
+        "fields": {
+            "q": "Sök",
+            "q_hint": "Ordernr, kund, regnr, chassinr, HSN/TSN, beskrivning …",
+            "ordnumber": "Ordernummer",
+            "customer_name": "Kundnamn",
+            "transaction_description": "Beskrivning",
+            "first_instruction": "Beskrivning",
+            "location": "Plats",
+            "status": "Status",
+            "transdate_from": "Datum fran",
+            "transdate_to": "Datum till",
+            "bringetermin_from": "Inlamningsdatum fran",
+            "bringetermin_to": "Inlamningsdatum till",
+            "amount_from": "Belopp fran",
+            "amount_to": "Belopp till",
+            "mechanic": "Mekaniker",
+            "employee": "Handlaggare",
+            "transdate": "Datum",
+            "bringetermin": "Inlamningsdatum",
+            "amount": "Belopp",
+            "cusordnumber": "Kundordernummer",
+            "hersteller": "Tillverkare",
+            "kennzeichen": "Reg.nr",
+            "status_not_hidden": "Inte {status}",
+            "status_all": "Alla",
+            "status_open": "Öppna"
+        },
+        "buttons": {
+            "search": "Sok",
+            "reset": "Aterstall"
+        },
+        "table": {
+            "title": "Sokresultat",
+            "text_no_search_table_shown": "Ange sokkriterier och starta med ENTER eller \"Sok\". Resultat visas har.",
+            "text_no_results": "Inga ordrar hittades.",
+            "results_count": "Resultat",
+            "intern": "Intern"
+        },
+        "alerts": {
+            "warning_no_search_criteria": "Inga sokkriterier angivna. Vill du verkligen ladda alla ordrar?"
+        },
+        "toasts": {
+            "error_loading_search_results": "Fel vid laddning av sokresultat."
+        }
+    }
+}

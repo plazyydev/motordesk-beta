@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Создать новый",
+        "newCarFromScan": "Список сканов",
+        "title": "Транспортные средства",
+        "manageCars": "Управление",
+        "orderSearch": "Список заказов",
+        "huSerienbrief": "Уведомления о ТО",
+        "orderSearchTooltip": "Поиск заказов",
+        "scanTooltip": "Транспорт из сканов"
+    },
+    "PartsRequests": {
+        "title": "Запчасти",
+        "search": "Поиск товара...",
+        "freetext": "Или свободный текст",
+        "qty": "Кол-во",
+        "note": "Примечание",
+        "add": "Заказать",
+        "empty": "Запчасти не заказаны",
+        "description": "Описание",
+        "status": "Статус",
+        "requestedBy": "Заказал",
+        "pending": "Заказано",
+        "ordered": "Заказано",
+        "revertToPending": "Вернуть в ожидание",
+        "delete": "Удалить"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Закрыть",
+        "fields": {
+            "c_bf": "Тормозная жидкость",
+            "c_sk": "Цепь ГРМ",
+            "c_wd": "Следующее ТО",
+            "c_zrd": "Дата замены ремня ГРМ",
+            "c_zrk": "Пробег ремня ГРМ"
+        },
+        "incompleteText": "Перед завершением заказа необходимо заполнить следующие поля:",
+        "incompleteTitle": "Данные ТО неполные",
+        "title": "ТО и обслуживание"
+    }
+}

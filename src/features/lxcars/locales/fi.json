@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Luo uusi",
+        "newCarFromScan": "Skannauslista",
+        "title": "Ajoneuvot",
+        "manageCars": "Hallitse",
+        "orderSearch": "Tilauslista",
+        "huSerienbrief": "Katsastusilmoitukset",
+        "orderSearchTooltip": "Tilaushaku",
+        "scanTooltip": "Ajoneuvot skannauksesta"
+    },
+    "PartsRequests": {
+        "title": "Varaosat",
+        "search": "Etsi artikkelia...",
+        "freetext": "Tai vapaa teksti",
+        "qty": "Määrä",
+        "note": "Huomautus",
+        "add": "Tilaa",
+        "empty": "Ei tilattuja varaosia",
+        "description": "Kuvaus",
+        "status": "Tila",
+        "requestedBy": "Tilaaja",
+        "pending": "Tilattu",
+        "ordered": "Tilattu",
+        "revertToPending": "Palauta odottavaksi",
+        "delete": "Poista"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Sulje",
+        "fields": {
+            "c_bf": "Jarruneste",
+            "c_sk": "Ajoitusketju",
+            "c_wd": "Seuraava huolto",
+            "c_zrd": "Ajoitushihnan päivämäärä",
+            "c_zrk": "Ajoitushihnan kilometrit"
+        },
+        "incompleteText": "Ennen kuin tilaus voidaan päättää, seuraavat kentät täytyy täyttää:",
+        "incompleteTitle": "Huoltotiedot puutteelliset",
+        "title": "Huolto ja ylläpito"
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Crear nuevo",
+        "newCarFromScan": "Lista de escaneo",
+        "title": "Vehículos",
+        "manageCars": "Gestionar",
+        "orderSearch": "Lista de pedidos",
+        "huSerienbrief": "Notificaciones ITV",
+        "orderSearchTooltip": "Búsqueda de pedidos",
+        "scanTooltip": "Vehículos desde escaneo"
+    },
+    "PartsRequests": {
+        "title": "Repuestos",
+        "search": "Buscar artículo...",
+        "freetext": "O texto libre",
+        "qty": "Cant.",
+        "note": "Nota",
+        "add": "Solicitar",
+        "empty": "No se han solicitado repuestos",
+        "description": "Descripción",
+        "status": "Estado",
+        "requestedBy": "Solicitado por",
+        "pending": "Solicitado",
+        "ordered": "Pedido",
+        "revertToPending": "Volver a pendiente",
+        "delete": "Eliminar"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Cerrar",
+        "fields": {
+            "c_bf": "Líquido de frenos",
+            "c_sk": "Cadena de distribución",
+            "c_wd": "Próxima revisión",
+            "c_zrd": "Fecha correa de distribución",
+            "c_zrk": "Km correa de distribución"
+        },
+        "incompleteText": "Antes de completar el pedido deben rellenarse los siguientes campos:",
+        "incompleteTitle": "Datos de mantenimiento incompletos",
+        "title": "Mantenimiento y servicio"
+    }
+}

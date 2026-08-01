@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Opret ny",
+        "newCarFromScan": "Scanliste",
+        "title": "Koeretoejer",
+        "manageCars": "Administrer",
+        "orderSearch": "Ordreliste",
+        "huSerienbrief": "Syn-meddelelser",
+        "orderSearchTooltip": "Ordresoegning",
+        "scanTooltip": "Koeretoejer fra scan"
+    },
+    "PartsRequests": {
+        "title": "Reservedele",
+        "search": "Søg artikel...",
+        "freetext": "Eller fritekst",
+        "qty": "Antal",
+        "note": "Note",
+        "add": "Bestil",
+        "empty": "Ingen reservedele bestilt",
+        "description": "Beskrivelse",
+        "status": "Status",
+        "requestedBy": "Bestilt af",
+        "pending": "Bestilt",
+        "ordered": "Bestilt",
+        "revertToPending": "Sæt tilbage til afventende",
+        "delete": "Slet"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Luk",
+        "fields": {
+            "c_bf": "Bremseväske",
+            "c_sk": "Kædeudveksling",
+            "c_wd": "Næste servicebesøg",
+            "c_zrd": "Dato for tandrem",
+            "c_zrk": "Km for tandrem"
+        },
+        "incompleteText": "Inden ordren kan afsluttes, skal følgende felter udfyldes:",
+        "incompleteTitle": "Servicedata ufuldstændige",
+        "title": "Vedligeholdelse og service"
+    }
+}

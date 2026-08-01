@@ -1,0 +1,21 @@
+{
+    "WallDisplay": {
+        "calendar": "Kalendarz",
+        "faktura": "Dokument",
+        "noFaktura": "Nie wybrano dokumentu",
+        "noFakturaHint": "Kliknij przycisk monitora w fakturze",
+        "invoice": "Faktura",
+        "order": "Zamówienie",
+        "quotation": "Oferta",
+        "open": "Otwarte",
+        "closed": "Zamknięte",
+        "position": "Poz.",
+        "description": "Opis",
+        "qty": "Ilość",
+        "price": "Cena",
+        "total": "Suma",
+        "grossTotal": "Kwota brutto",
+        "allDay": "Cały dzień",
+        "exit": "Wyjdź"
+    }
+}

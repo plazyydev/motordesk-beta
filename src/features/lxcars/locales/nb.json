@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Opprett ny",
+        "newCarFromScan": "Scanliste",
+        "title": "Kjoeretoeyer",
+        "manageCars": "Administrer",
+        "orderSearch": "Ordreliste",
+        "huSerienbrief": "EU-kontroll-varsler",
+        "orderSearchTooltip": "Ordresoek",
+        "scanTooltip": "Kjoeretoeyer fra scan"
+    },
+    "PartsRequests": {
+        "title": "Reservedeler",
+        "search": "Søk artikkel...",
+        "freetext": "Eller fritekst",
+        "qty": "Antall",
+        "note": "Merknad",
+        "add": "Bestill",
+        "empty": "Ingen reservedeler bestilt",
+        "description": "Beskrivelse",
+        "status": "Status",
+        "requestedBy": "Bestilt av",
+        "pending": "Bestilt",
+        "ordered": "Bestilt",
+        "revertToPending": "Tilbake til ventende",
+        "delete": "Slett"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Lukk",
+        "fields": {
+            "c_bf": "Bremsevæske",
+            "c_sk": "Distribusjonskjede",
+            "c_wd": "Neste service",
+            "c_zrd": "Dato for tannrem",
+            "c_zrk": "Km for tannrem"
+        },
+        "incompleteText": "Før ordren kan fullføres, må følgende felter fylles ut:",
+        "incompleteTitle": "Servicedata ufullstendige",
+        "title": "Vedlikehold og service"
+    }
+}

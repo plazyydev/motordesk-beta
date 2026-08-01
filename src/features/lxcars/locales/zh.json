@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "新建",
+        "newCarFromScan": "扫描列表",
+        "title": "车辆",
+        "manageCars": "管理",
+        "orderSearch": "订单列表",
+        "huSerienbrief": "车检通知",
+        "orderSearchTooltip": "订单搜索",
+        "scanTooltip": "从扫描创建车辆"
+    },
+    "PartsRequests": {
+        "title": "备件",
+        "search": "搜索商品...",
+        "freetext": "或自由文本",
+        "qty": "数量",
+        "note": "备注",
+        "add": "请求",
+        "empty": "未请求备件",
+        "description": "描述",
+        "status": "状态",
+        "requestedBy": "请求者",
+        "pending": "已请求",
+        "ordered": "已订购",
+        "revertToPending": "恢复为待处理",
+        "delete": "删除"
+    },
+    "MaintenanceSectionCard": {
+        "close": "关闭",
+        "fields": {
+            "c_bf": "制动液",
+            "c_sk": "正时链",
+            "c_wd": "下次保养日期",
+            "c_zrd": "正时皮带日期",
+            "c_zrk": "正时皮带里程"
+        },
+        "incompleteText": "在完成订单之前，必须填写以下字段：",
+        "incompleteTitle": "维护数据不完整",
+        "title": "维护与服务"
+    }
+}

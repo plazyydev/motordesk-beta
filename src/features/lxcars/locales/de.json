@@ -1,0 +1,56 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Neu anlegen",
+        "newCarFromScan": "Scanliste",
+        "title": "Fahrzeuge",
+        "manageCars": "Verwalten",
+        "orderSearch": "Auftragsliste",
+        "huSerienbrief": "HU-Benachrichtigungen",
+        "orderSearchTooltip": "Auftragssuche",
+        "scanTooltip": "Fahrzeuge von Scan"
+    },
+    "MaintenanceSectionCard": {
+        "title": "Wartung & Service",
+        "fields": {
+            "c_sk": "Steuerkette",
+            "c_zrd": "Zahnriemen Datum",
+            "c_zrk": "Zahnriemen km-Stand",
+            "c_bf": "Bremsflüssigkeit",
+            "c_wd": "Nächster Wartungsdienst"
+        },
+        "incompleteTitle": "Wartungsdaten unvollständig",
+        "incompleteText": "Bevor der Auftrag abgeschlossen werden kann, müssen folgende Felder ausgefüllt sein:",
+        "close": "Schließen",
+        "voice": {
+            "hint": "Wartungsdaten einsprechen — z. B. „Kilometerstand 120369, Zahnriemen fällig bei 20000, Bremsflüssigkeit 02/2029\"",
+            "stop": "Aufnahme beenden und übernehmen",
+            "applied": "Übernommen:",
+            "nothing": "Nichts erkannt — bitte deutlicher sprechen",
+            "failed": "Spracherkennung fehlgeschlagen",
+            "kmStand": "Kilometerstand"
+        }
+    },
+    "PartsRequests": {
+        "title": "Ersatzteile",
+        "search": "Artikel suchen...",
+        "freetext": "Oder Freitext",
+        "qty": "Menge",
+        "note": "Notiz",
+        "add": "Anfordern",
+        "empty": "Keine Ersatzteile angefordert",
+        "description": "Beschreibung",
+        "status": "Status",
+        "requestedBy": "Angefordert von",
+        "pending": "Angefordert",
+        "ordered": "Bestellt",
+        "revertToPending": "Zurück auf Angefordert",
+        "delete": "Löschen"
+    }
+}

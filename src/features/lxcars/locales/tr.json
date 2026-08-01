@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Yeni olustur",
+        "newCarFromScan": "Tarama listesi",
+        "title": "Araclar",
+        "manageCars": "Yonet",
+        "orderSearch": "Siparis listesi",
+        "huSerienbrief": "Muayene bildirimleri",
+        "orderSearchTooltip": "Siparis arama",
+        "scanTooltip": "Taramadan araclar"
+    },
+    "PartsRequests": {
+        "title": "Yedek Parçalar",
+        "search": "Ürün ara...",
+        "freetext": "Veya serbest metin",
+        "qty": "Adet",
+        "note": "Not",
+        "add": "Talep Et",
+        "empty": "Yedek parça talep edilmedi",
+        "description": "Açıklama",
+        "status": "Durum",
+        "requestedBy": "Talep eden",
+        "pending": "Talep edildi",
+        "ordered": "Sipariş edildi",
+        "revertToPending": "Beklemede olana geri al",
+        "delete": "Sil"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Kapat",
+        "fields": {
+            "c_bf": "Fren hidroliği",
+            "c_sk": "Zamanlama zinciri",
+            "c_wd": "Sonraki bakım tarihi",
+            "c_zrd": "Triger kayışı tarihi",
+            "c_zrk": "Triger kayışı km"
+        },
+        "incompleteText": "Sipariş tamamlanmadan önce aşağıdaki alanlar doldurulmalıdır:",
+        "incompleteTitle": "Bakım verileri eksik",
+        "title": "Bakım ve servis"
+    }
+}

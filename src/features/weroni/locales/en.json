@@ -1,0 +1,30 @@
+{
+    "weroni": {
+        "subtitle": "AI Office Assistant",
+        "tooltip": "Weroni — AI Office Assistant",
+        "tabs": {
+            "chat": "Chat",
+            "tasks": "Tasks",
+            "questions": "Questions"
+        },
+        "chat": {
+            "welcome": "Hello! I'm Weroni, your AI office assistant. How can I help you?",
+            "examples": "\"Any new emails?\" · \"Find customer from Garzau with Opel\" · \"Create task: found GmbH\"",
+            "placeholder": "Message to Weroni...",
+            "thinking": "Weroni is thinking...",
+            "newSession": "New conversation",
+            "uploadDoc": "Upload document",
+            "dropHere": "Drop document here"
+        },
+        "tasks": {
+            "empty": "No open tasks",
+            "needsConfirm": "Needs confirmation",
+            "confirm": "Confirm",
+            "reject": "Reject"
+        },
+        "questions": {
+            "empty": "No pending questions",
+            "answerPlaceholder": "Enter answer..."
+        }
+    }
+}

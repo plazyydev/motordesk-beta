@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Створити новий",
+        "newCarFromScan": "Список сканів",
+        "title": "Транспортні засоби",
+        "manageCars": "Управління",
+        "orderSearch": "Список замовлень",
+        "huSerienbrief": "Повідомлення про ТО",
+        "orderSearchTooltip": "Пошук замовлень",
+        "scanTooltip": "Транспорт зі сканів"
+    },
+    "PartsRequests": {
+        "title": "Запчастини",
+        "search": "Пошук товару...",
+        "freetext": "Або вільний текст",
+        "qty": "К-ть",
+        "note": "Примітка",
+        "add": "Замовити",
+        "empty": "Запчастини не замовлені",
+        "description": "Опис",
+        "status": "Статус",
+        "requestedBy": "Замовив",
+        "pending": "Замовлено",
+        "ordered": "Замовлено",
+        "revertToPending": "Повернути в очікування",
+        "delete": "Видалити"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Закрити",
+        "fields": {
+            "c_bf": "Гальмівна рідина",
+            "c_sk": "Ланцюг ГРМ",
+            "c_wd": "Наступне ТО",
+            "c_zrd": "Дата заміни ременя ГРМ",
+            "c_zrk": "Пробіг ременя ГРМ"
+        },
+        "incompleteText": "Перед завершенням замовлення необхідно заповнити такі поля:",
+        "incompleteTitle": "Дані ТО неповні",
+        "title": "ТО та обслуговування"
+    }
+}

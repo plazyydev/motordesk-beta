@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Nauja transporto priemonė",
+        "newCarFromScan": "Nuskaitymo sąrašas",
+        "title": "Transporto priemonės",
+        "manageCars": "Valdyti",
+        "orderSearch": "Užsakymų sąrašas",
+        "huSerienbrief": "TA pranešimai",
+        "orderSearchTooltip": "Užsakymų paieška",
+        "scanTooltip": "Transporto priemonės iš nuskaitymo"
+    },
+    "PartsRequests": {
+        "title": "Atsarginės dalys",
+        "search": "Ieškoti straipsnio...",
+        "freetext": "Arba laisvas tekstas",
+        "qty": "Kiekis",
+        "note": "Pastaba",
+        "add": "Užsakyti",
+        "empty": "Atsarginių dalių neužsakyta",
+        "description": "Aprašymas",
+        "status": "Būsena",
+        "requestedBy": "Užsakė",
+        "pending": "Užsakyta",
+        "ordered": "Užsakyta",
+        "revertToPending": "Grąžinti laukimą",
+        "delete": "Ištrinti"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Uždaryti",
+        "fields": {
+            "c_bf": "Stabdžių skystis",
+            "c_sk": "Paskirstymo grandinė",
+            "c_wd": "Kitas techninis aptarnavimas",
+            "c_zrd": "Paskirstymo diržo data",
+            "c_zrk": "Paskirstymo diržo rida"
+        },
+        "incompleteText": "Prieš uždarant užsakymą turi būti užpildyti šie laukai:",
+        "incompleteTitle": "Techninės priežiūros duomenys neišsamūs",
+        "title": "Techninė priežiūra ir aptarnavimas"
+    }
+}

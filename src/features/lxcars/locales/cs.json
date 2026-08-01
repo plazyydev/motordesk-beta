@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Novy zaznam",
+        "newCarFromScan": "Seznam skenu",
+        "title": "Vozidla",
+        "manageCars": "Spravovat",
+        "orderSearch": "Seznam objednavek",
+        "huSerienbrief": "HU-upozorneni",
+        "orderSearchTooltip": "Hledani objednavek",
+        "scanTooltip": "Vozidla ze skenu"
+    },
+    "PartsRequests": {
+        "title": "Náhradní díly",
+        "search": "Hledat článek...",
+        "freetext": "Nebo volný text",
+        "qty": "Množství",
+        "note": "Poznámka",
+        "add": "Objednat",
+        "empty": "Žádné náhradní díly nebyly požadovány",
+        "description": "Popis",
+        "status": "Stav",
+        "requestedBy": "Požadoval",
+        "pending": "Požadováno",
+        "ordered": "Objednáno",
+        "revertToPending": "Vrátit na čekající",
+        "delete": "Smazat"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Zavřít",
+        "fields": {
+            "c_bf": "Brzdová kapalina",
+            "c_sk": "Rozvodový řetěz",
+            "c_wd": "Příští servisní prohlídka",
+            "c_zrd": "Datum rozvodového řemene",
+            "c_zrk": "Km rozvodového řemene"
+        },
+        "incompleteText": "Před dokončením zakázky musí být vyplněna následující pole:",
+        "incompleteTitle": "Servisní data neúplná",
+        "title": "Údržba a servis"
+    }
+}

@@ -1,0 +1,136 @@
+/* ═══════════════════════════════════════════════════════════════
+   TABLET-MODUS: Buttons zeigen nur Icons, keine Beschriftung
+   Gilt fuer alle Bildschirme unterhalb Desktop (< 1280px / Vuetify lg)
+   Betrifft nur Buttons innerhalb .v-main (nicht Dialoge/Menus/Navbar)
+   ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 1279px) {
+    .v-main .v-btn:has(.v-btn__prepend) > .v-btn__content {
+        display: none;
+    }
+    .v-main .v-btn:has(.v-btn__prepend) > .v-btn__prepend {
+        margin-inline-end: 0;
+    }
+}
+
+@media screen and (min-width: 1900px) {
+    .v-main {
+        padding-left: 16rem;
+        padding-right: 16rem;
+    }
+}
+
+/* SweetAlert2 Toast Positioning */
+.swal2-toast {
+    margin-top: 55px !important;
+}
+
+.swal2-toast-above-overlay {
+    z-index: 100000 !important;
+}
+
+
+/* Confirm Button - Warmes Rot mit weißer Schrift */
+.swal2-confirm {
+    background-color: #f44336 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3) !important;
+}
+
+/* Cancel Button - Helles Grau mit dunkler Schrift */
+.swal2-cancel {
+    background-color: #f5f5f5 !important;
+    color: #616161 !important;
+    font-weight: 600 !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+/* Warning Icon - Rot statt Orange */
+.swal2-icon.swal2-warning {
+    border-color: #f44336 !important;
+    color: #f44336 !important;
+}
+
+.swal2-icon.swal2-warning .swal2-icon-content {
+    color: #f44336 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dropdown-Menüs mit vielen Einträgen (z. B. Kontenauswahl):
+   sichtbaren Scrollbalken erzwingen. Das Overlay-Menü wird ans
+   <body> teleportiert, daher muss das Styling global (unscoped) sein.
+   ═══════════════════════════════════════════════════════════════ */
+/* Scroll-Container ist je nach Vuetify-Version der Overlay-Content oder die
+   Liste; die menu-props-Klasse kann am Overlay-Root ODER am Content sitzen.
+   Daher alle plausiblen Kombinationen abdecken. */
+.oserp-scroll-menu,
+.oserp-scroll-menu .v-overlay__content,
+.oserp-scroll-menu.v-overlay__content,
+.oserp-scroll-menu .v-list,
+.oserp-scroll-menu .v-select__content {
+    overflow-y: auto !important;
+    scrollbar-width: thin;                 /* Firefox */
+    scrollbar-color: rgba(0,0,0,0.45) transparent;
+}
+.oserp-scroll-menu::-webkit-scrollbar,
+.oserp-scroll-menu .v-overlay__content::-webkit-scrollbar,
+.oserp-scroll-menu.v-overlay__content::-webkit-scrollbar,
+.oserp-scroll-menu .v-list::-webkit-scrollbar {
+    width: 12px;
+}
+.oserp-scroll-menu::-webkit-scrollbar-thumb,
+.oserp-scroll-menu .v-overlay__content::-webkit-scrollbar-thumb,
+.oserp-scroll-menu.v-overlay__content::-webkit-scrollbar-thumb,
+.oserp-scroll-menu .v-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.45);
+    border-radius: 6px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+.oserp-scroll-menu::-webkit-scrollbar-thumb:hover,
+.oserp-scroll-menu .v-overlay__content::-webkit-scrollbar-thumb:hover,
+.oserp-scroll-menu.v-overlay__content::-webkit-scrollbar-thumb:hover,
+.oserp-scroll-menu .v-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.65);
+    background-clip: content-box;
+}
+:root {
+    --md-color-brand: #1F6FEB;
+    --md-color-brand-dark: #1659C7;
+    --md-color-brand-soft: #EAF2FF;
+    --md-color-ink: #172033;
+    --md-color-muted: #5F6B7A;
+    --md-color-line: #DDE3EA;
+    --md-color-canvas: #F6F8FB;
+    --md-color-surface: #FFFFFF;
+    --md-radius-xs: 3px;
+    --md-radius-sm: 4px;
+    --md-radius-md: 6px;
+    --md-radius-lg: 8px;
+    --md-space-xs: 4px;
+    --md-space-sm: 8px;
+    --md-space-md: 12px;
+    --md-space-lg: 16px;
+    --md-space-xl: 24px;
+    --md-toolbar-height: 56px;
+}
+
+.v-theme--dark {
+    --md-color-brand: #7DB1FF;
+    --md-color-brand-dark: #5F98E8;
+    --md-color-brand-soft: #202832;
+    --md-color-ink: #E8EEF6;
+    --md-color-muted: #AAB6C4;
+    --md-color-line: #344050;
+    --md-color-canvas: #101418;
+    --md-color-surface: #171D24;
+}
+
+html {
+    background: var(--md-color-canvas);
+}
+
+body {
+    color: var(--md-color-ink);
+    background: var(--md-color-canvas);
+}

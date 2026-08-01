@@ -1,0 +1,84 @@
+# Logs
+backend/log/*.log
+!backend/log/.gitkeep
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.npm-cache
+dist
+dist-ssr
+release/
+backups/
+log/
+*.local
+.env
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.claude/
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# OpensourceERP
+# deprected files
+backend/config/api.passwd.php
+backend/config/api.config.php
+
+# Neue Konfiguration
+settings.ini
+settings.ini.backup.*
+settings.iniBAK
+backend/config/settings.iniBAK
+
+# Docker
+docker/.env
+
+# Private Features
+special/
+src/core/views/special/
+backend/api/special
+
+# Druckvorlagen (eigenes Git-Repo, kundenspezifisch)
+backend/templates/
+
+backend/tmp/*/
+
+# Demo-Daten (lokal generiert, nicht im Repo)
+backend/api/demo/data/
+
+# Python Virtual Environments
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+docs/superpowers
+
+# Kamera-Aufnahmen (lokal generiert)
+public/camera-snapshots/
+public/camera-clips/
+
+# Composer (PHP) — Cache, Dependencies und Tool-Binary nicht ins Repo
+backend/.composer/
+backend/vendor/
+backend/composer.phar
+
+# Laufzeit-Artefakte (z. B. Kontenrahmen-Backups vor Rollout) nicht ins Repo
+/var/
+# carparts-cat / TOPMOTIVE Doku-Zugang (lokal, niemals committen)
+dev/.carparts-creds
+dev/carparts-cat-docs/

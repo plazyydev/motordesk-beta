@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Utwórz nowy",
+        "newCarFromScan": "Lista skanów",
+        "title": "Pojazdy",
+        "manageCars": "Zarządzaj",
+        "orderSearch": "Lista zleceń",
+        "huSerienbrief": "Powiadomienia o przeglądzie",
+        "orderSearchTooltip": "Wyszukiwanie zleceń",
+        "scanTooltip": "Pojazdy ze skanu"
+    },
+    "PartsRequests": {
+        "title": "Części zamienne",
+        "search": "Szukaj artykułu...",
+        "freetext": "Lub wolny tekst",
+        "qty": "Ilość",
+        "note": "Uwaga",
+        "add": "Zamów",
+        "empty": "Nie zamówiono części zamiennych",
+        "description": "Opis",
+        "status": "Status",
+        "requestedBy": "Zamówione przez",
+        "pending": "Zamówione",
+        "ordered": "Zamówione",
+        "revertToPending": "Przywróć do oczekujących",
+        "delete": "Usuń"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Zamknij",
+        "fields": {
+            "c_bf": "Płyn hamulcowy",
+            "c_sk": "Łańcuch rozrządu",
+            "c_wd": "Następny przegląd",
+            "c_zrd": "Data paska rozrządu",
+            "c_zrk": "Km paska rozrządu"
+        },
+        "incompleteText": "Przed zamknięciem zlecenia należy wypełnić następujące pola:",
+        "incompleteTitle": "Dane serwisowe niekompletne",
+        "title": "Konserwacja i serwis"
+    }
+}

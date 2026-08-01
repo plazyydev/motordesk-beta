@@ -1,0 +1,49 @@
+{
+    "OrderSearchView": {
+        "title": "Ricerca ordini",
+        "fields": {
+            "q": "Cerca",
+            "q_hint": "N. ordine, cliente, targa, telaio, HSN/TSN, descrizione …",
+            "ordnumber": "Numero ordine",
+            "customer_name": "Nome cliente",
+            "transaction_description": "Descrizione",
+            "first_instruction": "Descrizione",
+            "location": "Posizione",
+            "status": "Stato",
+            "transdate_from": "Data da",
+            "transdate_to": "Data a",
+            "bringetermin_from": "Data di consegna da",
+            "bringetermin_to": "Data di consegna a",
+            "amount_from": "Importo da",
+            "amount_to": "Importo a",
+            "mechanic": "Meccanico",
+            "employee": "Responsabile",
+            "transdate": "Data",
+            "bringetermin": "Data di consegna",
+            "amount": "Importo",
+            "cusordnumber": "Numero ordine cliente",
+            "hersteller": "Produttore",
+            "kennzeichen": "Targa",
+            "status_not_hidden": "Non {status}",
+            "status_all": "Tutti",
+            "status_open": "Aperti"
+        },
+        "buttons": {
+            "search": "Cerca",
+            "reset": "Ripristina"
+        },
+        "table": {
+            "title": "Risultati della ricerca",
+            "text_no_search_table_shown": "Inserire i criteri di ricerca e premere INVIO o \"Cerca\". I risultati verranno mostrati qui.",
+            "text_no_results": "Nessun ordine trovato.",
+            "results_count": "Risultati",
+            "intern": "Interno"
+        },
+        "alerts": {
+            "warning_no_search_criteria": "Non sono stati inseriti criteri di ricerca. Vuoi davvero caricare tutti gli ordini?"
+        },
+        "toasts": {
+            "error_loading_search_results": "Errore nel caricamento dei risultati."
+        }
+    }
+}

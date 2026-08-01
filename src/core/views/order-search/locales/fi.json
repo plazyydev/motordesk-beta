@@ -1,0 +1,49 @@
+{
+    "OrderSearchView": {
+        "title": "Tilaushaku",
+        "fields": {
+            "q": "Haku",
+            "q_hint": "Tilausnro, asiakas, rekisterinumero, VIN, HSN/TSN, kuvaus …",
+            "ordnumber": "Tilausnumero",
+            "customer_name": "Asiakkaan nimi",
+            "transaction_description": "Kuvaus",
+            "first_instruction": "Kuvaus",
+            "location": "Sijainti",
+            "status": "Tila",
+            "transdate_from": "Paivamaara alkaen",
+            "transdate_to": "Paivamaara paattyen",
+            "bringetermin_from": "Toimituspaiva alkaen",
+            "bringetermin_to": "Toimituspaiva paattyen",
+            "amount_from": "Summa alkaen",
+            "amount_to": "Summa paattyen",
+            "mechanic": "Mekaanikko",
+            "employee": "Kasittelija",
+            "transdate": "Paivamaara",
+            "bringetermin": "Toimituspaiva",
+            "amount": "Summa",
+            "cusordnumber": "Asiakkaan tilausnumero",
+            "hersteller": "Valmistaja",
+            "kennzeichen": "Rekisterinumero",
+            "status_not_hidden": "Ei {status}",
+            "status_all": "Kaikki",
+            "status_open": "Avoimet"
+        },
+        "buttons": {
+            "search": "Hae",
+            "reset": "Nollaa"
+        },
+        "table": {
+            "title": "Hakutulokset",
+            "text_no_search_table_shown": "Syota hakuehtoja ja paina ENTER tai \"Hae\". Tulokset naytetaan taalla.",
+            "text_no_results": "Tilauksia ei loytynyt.",
+            "results_count": "Tulokset",
+            "intern": "Sisäinen"
+        },
+        "alerts": {
+            "warning_no_search_criteria": "Hakuehtoja ei annettu. Haluatko todella ladata kaikki tilaukset?"
+        },
+        "toasts": {
+            "error_loading_search_results": "Virhe hakutulosten lataamisessa."
+        }
+    }
+}

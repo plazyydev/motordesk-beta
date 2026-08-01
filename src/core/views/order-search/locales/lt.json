@@ -1,0 +1,49 @@
+{
+    "OrderSearchView": {
+        "title": "Užsakymų paieška",
+        "fields": {
+            "q": "Paieška",
+            "q_hint": "Užsakymo nr., klientas, valst. nr., VIN, HSN/TSN, aprašymas …",
+            "ordnumber": "Užsakymo numeris",
+            "customer_name": "Kliento vardas",
+            "transaction_description": "Aprašymas",
+            "first_instruction": "Aprašymas",
+            "location": "Vieta",
+            "status": "Būsena",
+            "transdate_from": "Data nuo",
+            "transdate_to": "Data iki",
+            "bringetermin_from": "Atvežimo terminas nuo",
+            "bringetermin_to": "Atvežimo terminas iki",
+            "amount_from": "Suma nuo",
+            "amount_to": "Suma iki",
+            "mechanic": "Mechanikas",
+            "employee": "Vykdytojas",
+            "transdate": "Data",
+            "bringetermin": "Atvežimo terminas",
+            "amount": "Suma",
+            "cusordnumber": "Kliento užsakymo numeris",
+            "hersteller": "Gamintojas",
+            "kennzeichen": "Valst. nr",
+            "status_not_hidden": "Ne {status}",
+            "status_all": "Visi",
+            "status_open": "Atviri"
+        },
+        "buttons": {
+            "search": "Ieškoti",
+            "reset": "Atstatyti"
+        },
+        "table": {
+            "title": "Paieškos rezultatai",
+            "text_no_search_table_shown": "Įveskite paieškos kriterijus ir paspauskite ENTER arba \"Ieškoti\". Rezultatai bus rodomi čia.",
+            "text_no_results": "Užsakymų nerasta.",
+            "results_count": "Rezultatai",
+            "intern": "Vidinis"
+        },
+        "alerts": {
+            "warning_no_search_criteria": "Paieškos kriterijai neįvesti. Ar tikrai norite įkelti visus užsakymus?"
+        },
+        "toasts": {
+            "error_loading_search_results": "Klaida kraunant paieškos rezultatus."
+        }
+    }
+}

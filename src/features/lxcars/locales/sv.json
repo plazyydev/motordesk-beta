@@ -1,0 +1,48 @@
+{
+    "CarView": {
+        "routes": {
+            "newCar": "/fahrzeug/neu",
+            "newCarFromScan": "/fahrzeug/neu-vom-scan",
+            "manageCars": "/fahrzeug",
+            "orderSearch": "/fahrzeug-auftrag/suche",
+            "carRegistration": "/fahrzeug/zulassung"
+        },
+        "newCar": "Skapa ny",
+        "newCarFromScan": "Skanlista",
+        "title": "Fordon",
+        "manageCars": "Hantera",
+        "orderSearch": "Orderlista",
+        "huSerienbrief": "Besiktningsaviseringar",
+        "orderSearchTooltip": "Ordersok",
+        "scanTooltip": "Fordon fran skanning"
+    },
+    "PartsRequests": {
+        "title": "Reservdelar",
+        "search": "Sök artikel...",
+        "freetext": "Eller fritext",
+        "qty": "Antal",
+        "note": "Anteckning",
+        "add": "Beställ",
+        "empty": "Inga reservdelar beställda",
+        "description": "Beskrivning",
+        "status": "Status",
+        "requestedBy": "Beställd av",
+        "pending": "Beställd",
+        "ordered": "Beställd",
+        "revertToPending": "Återställ till väntande",
+        "delete": "Radera"
+    },
+    "MaintenanceSectionCard": {
+        "close": "Stäng",
+        "fields": {
+            "c_bf": "Bromsvätska",
+            "c_sk": "Kamkedja",
+            "c_wd": "Nästa service",
+            "c_zrd": "Datum kamrem",
+            "c_zrk": "Km kamrem"
+        },
+        "incompleteText": "Innan ordern kan avslutas måste följande fält fyllas i:",
+        "incompleteTitle": "Servicedata ofullständiga",
+        "title": "Underhåll och service"
+    }
+}
