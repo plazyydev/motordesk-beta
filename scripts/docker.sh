@@ -186,16 +186,20 @@ cmd_up_db() {
 # ------ up-web ------------------------------------------------------------
 cmd_up_web() {
     check_env
-    info "Starte Web-Container (baut Image wenn noetig)..."
-    dc up -d --build web
+    info "Baue Web-Image ohne Docker-Cache..."
+    dc build --no-cache web
+    info "Starte Web-Container..."
+    dc up -d --no-build web
     success "Web-Container gestartet."
 }
 
 # ------ up-all ------------------------------------------------------------
 cmd_up_all() {
     check_env
+    info "Baue Images ohne Docker-Cache..."
+    dc build --no-cache
     info "Starte alle Container..."
-    dc up -d --build
+    dc up -d --no-build
     success "Alle Container gestartet."
 }
 
@@ -394,8 +398,10 @@ cmd_reset() {
     fi
 
     # ── 7. Web-Container starten ──
+    info "Baue Web-Image ohne Docker-Cache..."
+    dc build --no-cache web
     info "Starte Web-Container..."
-    dc up -d --build web
+    dc up -d --no-build web
 
     echo ""
     success "Stack komplett neu aufgesetzt!"
@@ -618,8 +624,10 @@ cmd_demo_up() {
         read -rp "Trotzdem starten (DB wird leer sein)? (ja/nein): " confirm
         [[ "$confirm" == "ja" ]] || { info "Abgebrochen."; exit 0; }
     fi
+    info "Baue Demo-Images ohne Docker-Cache..."
+    dc_demo build --no-cache
     info "Starte Stack im Demo-Modus (tmpfs + Auto-Seed)..."
-    dc_demo up -d --build
+    dc_demo up -d --no-build
     success "Demo-Stack laeuft. DB wird bei jedem Restart neu geseeded."
 }
 

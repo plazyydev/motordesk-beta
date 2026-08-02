@@ -13,13 +13,11 @@ function canUserCreateCompany($login) {
 }
 
 function mdAuthNormalizeCompanyNumber($value) {
-    $value = strtoupper(trim((string)$value));
-    $value = preg_replace('/[^A-Z0-9]+/', '-', $value);
-    return trim($value, '-');
+    return preg_replace('/[^0-9]+/', '', (string)$value);
 }
 
 function mdAuthFallbackCompanyNumber($id) {
-    return 'MD-' . str_pad((string)intval($id), 5, '0', STR_PAD_LEFT);
+    return (string)(2199 + intval($id));
 }
 
 function mdAuthEnsureClientMetadata($auth) {
@@ -29,7 +27,12 @@ function mdAuthEnsureClientMetadata($auth) {
     $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS setup_status text NOT NULL DEFAULT 'needs_review'");
     $auth->execute("
         UPDATE auth.clients
-        SET company_number = 'MD-' || lpad(id::text, 5, '0')
+        SET company_number = (2199 + substring(company_number FROM '^MD-0*([0-9]+)$')::integer)::text
+        WHERE company_number ~ '^MD-[0-9]+$'
+    ");
+    $auth->execute("
+        UPDATE auth.clients
+        SET company_number = (2199 + id)::text
         WHERE company_number IS NULL OR btrim(company_number) = ''
     ");
     $auth->execute("UPDATE auth.clients SET master_data_locked = true WHERE master_data_locked IS NULL");
@@ -41,11 +44,39 @@ function mdAuthEnsureClientMetadata($auth) {
 function mdAuthNextCompanyNumber($auth) {
     mdAuthEnsureClientMetadata($auth);
     $row = $auth->getOne("
-        SELECT COALESCE(MAX(substring(company_number FROM '^MD-([0-9]+)$')::integer), 0) + 1 AS next_num
+        SELECT GREATEST(COALESCE(MAX(company_number::integer) + 1, 2200), 2200) AS next_num
         FROM auth.clients
-        WHERE company_number ~ '^MD-[0-9]+$'
+        WHERE company_number ~ '^[0-9]+$'
     ");
-    return 'MD-' . str_pad((string)intval($row['next_num'] ?? 1), 5, '0', STR_PAD_LEFT);
+    return (string)intval($row['next_num'] ?? 2200);
+}
+
+function mdAuthResolveClientId($auth, $value): int {
+    mdAuthEnsureClientMetadata($auth);
+    $raw = trim((string)$value);
+    $companyNumber = mdAuthNormalizeCompanyNumber($raw);
+
+    if ($companyNumber !== '') {
+        $client = $auth->getOne(
+            'SELECT id FROM auth.clients WHERE company_number = :company_number',
+            [':company_number' => $companyNumber]
+        );
+        if ($client) {
+            return intval($client['id']);
+        }
+    }
+
+    if (preg_match('/^[0-9]+$/', $raw)) {
+        $client = $auth->getOne(
+            'SELECT id FROM auth.clients WHERE id = :id',
+            [':id' => intval($raw)]
+        );
+        if ($client) {
+            return intval($client['id']);
+        }
+    }
+
+    throw new ApiError('CLIENT_NOT_FOUND', 'Firma mit dieser Firmennummer wurde nicht gefunden');
 }
 
 function mdAuthEnsureUserClientAdminAccess($auth, int $clientId, int $userId) {
@@ -185,7 +216,7 @@ function login($data) {
 
     $storedHash = $context['password'];
     $userId = $context['id'];
-    $clientId = (int)$data['client'];
+    $clientId = mdAuthResolveClientId($auth, $data['client']);
     $cleartextPassword = $data['password'];
     $rememberMe = !empty($data['remember_me']);
 

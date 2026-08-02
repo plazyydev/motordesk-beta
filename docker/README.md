@@ -39,13 +39,15 @@ Vom Projektwurzelverzeichnis:
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
+docker compose build --no-cache
+docker compose up -d --no-build
 ```
 
 Oder mit der Compose-Datei unter `docker/`:
 
 ```bash
-docker compose --env-file .env -f docker/docker-compose.yml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml build --no-cache
+docker compose --env-file .env -f docker/docker-compose.yml up -d --no-build
 ```
 
 ## Datenbankstatus

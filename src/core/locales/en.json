@@ -7,7 +7,7 @@
         "button": "Anmelden",
         "rememberMe": "Stay signed in",
         "failed": "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten.",
-        "EMPTY_FIELDS": "Bitte Name und Passwort angeben.",
+        "EMPTY_FIELDS": "Please enter username, password, and company number.",
         "USER_NOT_FOUND": "Benutzer nicht gefunden.",
         "WRONG_PASSWORD": "Ungültiges Passwort.",
         "ERROR": "Fehler bei der Anmeldung. Bitte versuchen Sie es erneut.",

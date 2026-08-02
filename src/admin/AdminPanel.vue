@@ -302,7 +302,7 @@
               variant="outlined"
               density="comfortable"
               class="mb-3"
-              hint="Leer lassen fuer automatische Nummer"
+              hint="Leer lassen fuer automatische Nummer ab 2200"
               persistent-hint
               @update:model-value="createCompanyNumber = normalizeCompanyNumber(createCompanyNumber)"
               @keydown.enter="canSubmitCompany && doCreateCompany()"
@@ -640,9 +640,7 @@ function slugCompanyName(value) {
 
 function normalizeCompanyNumber(value) {
   return String(value || '')
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^0-9]+/g, '')
 }
 
 async function doCreateCompany() {
@@ -756,7 +754,7 @@ async function logout() {
 }
 
 function companyNumber(client) {
-  return client?.company_number || (client?.code ? `MD-${String(client.code).padStart(5, '0')}` : '')
+  return client?.company_number || (client?.code ? String(2199 + Number(client.code)) : '')
 }
 
 function clientSelectLabel(client) {

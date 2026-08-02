@@ -63,8 +63,8 @@ function createCompany($data) {
         return;
     }
 
-    if (!preg_match('/^[A-Z0-9][A-Z0-9-]{2,31}$/', $companyNumber)) {
-        resultInfo(false, 'VALIDATION_ERROR', 'Firmennummer darf nur Buchstaben, Zahlen und Bindestriche enthalten');
+    if (!preg_match('/^[0-9]+$/', $companyNumber) || intval($companyNumber) < 2200) {
+        resultInfo(false, 'VALIDATION_ERROR', 'Firmennummer muss eine Zahl ab 2200 sein');
         return;
     }
 

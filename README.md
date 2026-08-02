@@ -347,7 +347,8 @@ Wichtige Werte in `.env`:
 Alternativ direkt mit Compose:
 
 ```bash
-docker compose up -d --build
+docker compose build --no-cache
+docker compose up -d --no-build
 ```
 
 Eine fachlich nutzbare Datenbank wird derzeit nicht automatisch aus einer

@@ -541,8 +541,8 @@ function updateCompanyPanelSettings($data) {
     $setupStatus = trim($data['setup_status'] ?? 'needs_review');
     $masterDataLocked = mdAdminBool($data['master_data_locked'] ?? true);
 
-    if (!preg_match('/^[A-Z0-9][A-Z0-9-]{2,31}$/', $companyNumber)) {
-        throw new ApiError('VALIDATION_ERROR', 'Firmennummer darf nur Buchstaben, Zahlen und Bindestriche enthalten');
+    if (!preg_match('/^[0-9]+$/', $companyNumber) || intval($companyNumber) < 2200) {
+        throw new ApiError('VALIDATION_ERROR', 'Firmennummer muss eine Zahl ab 2200 sein');
     }
     if (!in_array($verificationStatus, ['pending', 'verified', 'rejected'], true)) {
         throw new ApiError('VALIDATION_ERROR', 'Unbekannter Gewerbepruefstatus');

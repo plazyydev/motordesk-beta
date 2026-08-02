@@ -27,10 +27,12 @@
                 variant="outlined" density="comfortable"
                 @focus="clearError" @keydown="clearError" @keyup.enter="login"
               />
-              <v-select
-                id="client" v-model="clientCode" :items="clientItems" item-title="login_label" item-value="code"
-                :label="t('LoginView.client')" variant="outlined" density="comfortable" class="pt-3"
-                @update:modelValue="clearError"
+              <v-text-field
+                id="client" v-model="clientCode" :label="t('LoginView.client')" autocomplete="organization"
+                inputmode="numeric" pattern="[0-9]*" placeholder="2200"
+                variant="outlined" density="comfortable" class="pt-3"
+                @update:model-value="clientCode = normalizeCompanyNumber(clientCode)"
+                @focus="clearError" @keydown="clearError" @keyup.enter="login"
               />
               <v-checkbox
                 id="remember-me" v-model="rememberMe" :label="t('LoginView.rememberMe')"
@@ -71,14 +73,12 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { oserpStore } from '@/core/stores/oserp.store.js'
 import ErrorView from '@/core/components/messages/error.view.vue'
-import { ApiError } from '@/core/utils/error.js';
 import { AuthStatus } from '@/core/constants/auth.js';
-import * as alerts from '@/core/utils/alerts.js';
 
 export default {
   name: 'LoginView',
@@ -92,8 +92,7 @@ export default {
     // Form-State
     const username    = ref('')
     const password    = ref('')
-    const clientCode  = ref(null)
-    const clientItems = ref([])
+    const clientCode  = ref('')
     const rememberMe  = ref(false)
 
     // UI-State
@@ -111,46 +110,7 @@ export default {
       errorType.value = 'warning'
     }
 
-    const setDefaultClient = (list) => {
-      const preferred = list.find(c => c.is_default)
-      clientCode.value = preferred ? preferred.code : (list[0]?.code ?? null)
-    }
-
-    const normalizeClientItems = (list) => {
-      return (list || []).map((client) => {
-        const companyNumber = client.company_number || (client.code ? `MD-${String(client.code).padStart(5, '0')}` : '')
-        const loginLabel = client.login_label || [companyNumber, client.name].filter(Boolean).join(' - ')
-        return { ...client, company_number: companyNumber, login_label: loginLabel || client.name }
-      })
-    }
-
-    onMounted(async () => {
-      try {
-        const { clients, is_demo } = await oserp.fetchClients()
-        clientItems.value = normalizeClientItems(clients)
-        setDefaultClient(clientItems.value)
-
-        // Demo-Modus: Zugangsdaten automatisch eintragen
-        if (is_demo) {
-          username.value = 'demo'
-          password.value = 'demo'
-        }
-      } catch (e) {
-        console.error('oserp.fetchClients error:', e)
-        clientItems.value = []
-        clientCode.value  = null
-        if( e instanceof ApiError ) {
-          alerts.error(t(`LoginView.${e.code}`))
-            .then(async (result) => {
-                if (result.isConfirmed) {
-                    window.location.reload();
-                }
-            });
-        }
-        errorMessage.value = t('LoginView.ERROR_LOADING_CLIENTS')
-        errorType.value    = 'error'
-      }
-    })
+    const normalizeCompanyNumber = (value) => String(value || '').replace(/[^0-9]+/g, '')
 
     // Schema-Mismatch: Tabelle/Spalte fehlt in DB -> Update-Skript kann das beheben.
     // PG-SQLSTATE: 42703 = undefined column, 42P01 = undefined table.
@@ -162,7 +122,7 @@ export default {
 
     const login = async (isRetry = false) => {
       clearError()
-      if (!username.value || !password.value) {
+      if (!username.value || !password.value || !clientCode.value) {
         errorMessage.value = t('LoginView.EMPTY_FIELDS')
         errorType.value    = 'warning'
         return
@@ -229,9 +189,9 @@ export default {
     }
 
     return {
-      t, username, password, clientCode, clientItems, rememberMe,
+      t, username, password, clientCode, rememberMe,
       loading, errorMessage, errorType, clearError, login,
-      updateLoading, updateSuccess, updateError, runUpdate
+      updateLoading, updateSuccess, updateError, runUpdate, normalizeCompanyNumber
     }
   }
 }

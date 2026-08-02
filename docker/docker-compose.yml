@@ -9,6 +9,7 @@ services:
     build:
       context: ..
       dockerfile: docker/web/Dockerfile
+      no_cache: true
     image: ${STACK_NAME:-motordesk}-web:latest
     pull_policy: never
     container_name: ${STACK_NAME:-motordesk}-web

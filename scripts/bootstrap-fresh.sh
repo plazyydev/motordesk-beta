@@ -312,8 +312,10 @@ else
     load_sql_file "$DB_COMPANY_NAME" "$PROJECT_ROOT/backend/upstall/lxcars/anpr_schema.sql"
 fi
 
+info "Baue Web-Image ohne Docker-Cache."
+dc build --no-cache web
 info "Starte/aktualisiere Web-Container."
-dc up -d --build web
+dc up -d --no-build web
 
 success "Fresh Bootstrap abgeschlossen."
 echo ""

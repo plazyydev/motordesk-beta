@@ -44,7 +44,11 @@ ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS verification_status text NOT N
 ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS setup_status text NOT NULL DEFAULT 'needs_review';
 
 UPDATE auth.clients
-SET company_number = 'MD-' || lpad(id::text, 5, '0')
+SET company_number = (2199 + substring(company_number FROM '^MD-0*([0-9]+)$')::integer)::text
+WHERE company_number ~ '^MD-[0-9]+$';
+
+UPDATE auth.clients
+SET company_number = (2199 + id)::text
 WHERE company_number IS NULL OR btrim(company_number) = '';
 
 UPDATE auth.clients SET master_data_locked = true WHERE master_data_locked IS NULL;
@@ -179,7 +183,7 @@ seeded_client AS (
     )
     VALUES (
         :'client_name',
-        'MD-00001',
+        '2200',
         'db',
         '5432',
         :'company_db',
