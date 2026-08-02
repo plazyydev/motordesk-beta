@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP-asennus",
-        "welcome": "Tervetuloa OpensourceERP:hen! Määritä yhteys todennustietokantaan.",
+        "title": "MotorDesk-asennus",
+        "welcome": "Tervetuloa MotorDesk:hen! Määritä yhteys todennustietokantaan.",
         "setupAlreadyDone": "Asennus on jo tehty. Sinut ohjataan kirjautumissivulle...",
         "configFound": "kivitendo.conf löytyi - Salasana oli salaamaton. Lomake täytettiin automaattisesti.",
         "setupCompleteMessage": "Asennus onnistui! Salasana tallennettiin salattuna. Sinut ohjataan eteenpäin...",
@@ -44,7 +44,7 @@
             "networkError": "Verkkovirhe tietokantapäivityksessä."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

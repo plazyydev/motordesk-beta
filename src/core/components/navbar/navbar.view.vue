@@ -21,10 +21,12 @@
         class="motordesk-brand__logo"
         :alt="brandTitle"
       >
-      <template v-else>
-        <span class="motordesk-brand__mark">MD</span>
-        <span class="motordesk-brand__name">MotorDesk</span>
-      </template>
+      <img
+        v-else
+        :src="fallbackLogo"
+        class="motordesk-brand__logo motordesk-brand__logo--fallback"
+        alt="MotorDesk"
+      >
     </router-link>
 
     <v-chip
@@ -387,6 +389,7 @@ import WeroniPanel from '@/features/weroni/components/weroni-panel.vue'
 import { weroniStore } from '@/features/weroni/stores/weroni.store.js'
 import { useNavigationCards } from '@/core/composables/navigation.cards'
 import { useActivityTracker } from '@/core/composables/useActivityTracker'
+import { MOTORDESK_FALLBACK_LOGO } from '@/core/branding.js'
 
 export default {
   name: 'NavbarView',
@@ -561,6 +564,7 @@ export default {
     // Firmenlogo (nur Anzeige, Upload jetzt in Firmenkonfiguration)
     const companyLogo = computed(() => oserpData.getBrandingConfig().companyLogo || null)
     const brandTitle = computed(() => companyLogo.value ? oserpData.session.client : 'MotorDesk')
+    const fallbackLogo = MOTORDESK_FALLBACK_LOGO
 
     const logout = async () => {
       appReady.value = false
@@ -642,6 +646,7 @@ export default {
       clientList,
       doSwitchClient,
       companyLogo,
+      fallbackLogo,
       showAboutDialog,
       sseConnected,
       weroni,
@@ -689,33 +694,20 @@ export default {
   background: var(--md-color-brand-soft);
 }
 
-.motordesk-brand__mark {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
-  font-weight: 800;
-  font-size: 0.76rem;
-  line-height: 1;
-}
-
-.motordesk-brand__name {
-  font-weight: 800;
-  font-size: 1rem;
-  letter-spacing: 0;
-  white-space: nowrap;
-}
-
 .motordesk-brand__logo {
   height: 34px;
   width: auto;
-  max-width: 180px;
+  max-width: 186px;
   object-fit: contain;
-  border-radius: 4px;
+}
+
+.motordesk-brand__logo--fallback {
+  height: 36px;
+  max-width: 172px;
+}
+
+.v-theme--dark .motordesk-brand__logo--fallback {
+  filter: brightness(1.45) contrast(1.05);
 }
 
 .motordesk-feature-chip {

@@ -33,7 +33,7 @@ export default {
   name: 'AboutDialog',
   props: {
     modelValue: { type: Boolean, default: false },
-    appTitle: { type: String, default: 'OpensourceERP' }
+    appTitle: { type: String, default: 'MotorDesk' }
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {

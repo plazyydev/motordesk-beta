@@ -2,8 +2,7 @@
   <v-app-bar class="motordesk-login-bar" elevation="0" density="comfortable" aria-label="MotorDesk Navbar">
     <v-toolbar-title class="text-h6">
       <router-link to="/" class="motordesk-login-brand">
-        <span class="motordesk-login-brand__mark">MD</span>
-        <span>MotorDesk</span>
+        <img :src="fallbackLogo" class="motordesk-login-brand__logo" alt="MotorDesk">
       </router-link>
     </v-toolbar-title>
   </v-app-bar>
@@ -79,6 +78,7 @@ import { useI18n } from 'vue-i18n'
 import { oserpStore } from '@/core/stores/oserp.store.js'
 import ErrorView from '@/core/components/messages/error.view.vue'
 import { AuthStatus } from '@/core/constants/auth.js';
+import { MOTORDESK_FALLBACK_LOGO } from '@/core/branding.js'
 
 export default {
   name: 'LoginView',
@@ -88,6 +88,7 @@ export default {
     const router = useRouter()
     const route  = useRoute()
     const oserp  = oserpStore()
+    const fallbackLogo = MOTORDESK_FALLBACK_LOGO
 
     // Form-State
     const username    = ref('')
@@ -192,6 +193,7 @@ export default {
 
     return {
       t, username, password, clientCode, clientPlaceholder, rememberMe,
+      fallbackLogo,
       loading, errorMessage, errorType, clearError, login,
       updateLoading, updateSuccess, updateError, runUpdate, normalizeCompanyNumber
     }
@@ -216,17 +218,15 @@ export default {
   letter-spacing: 0;
 }
 
-.motordesk-login-brand__mark {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
-  font-size: 0.76rem;
-  font-weight: 800;
+.motordesk-login-brand__logo {
+  height: 38px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+}
+
+.v-theme--dark .motordesk-login-brand__logo {
+  filter: brightness(1.45) contrast(1.05);
 }
 
 .update-trigger { cursor: default; user-select: none; }

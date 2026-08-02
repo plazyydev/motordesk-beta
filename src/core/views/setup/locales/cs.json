@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Vítejte v OpensourceERP! Nakonfigurujte prosím připojení k autentizační databázi.",
+        "title": "MotorDesk Setup",
+        "welcome": "Vítejte v MotorDesk! Nakonfigurujte prosím připojení k autentizační databázi.",
         "setupAlreadyDone": "Nastavení již bylo provedeno. Budete přesměrováni na přihlašovací stránku...",
         "configFound": "kivitendo.conf nalezen - Heslo bylo nezašifrované. Formulář byl automaticky vyplněn.",
         "setupCompleteMessage": "Nastavení úspěšně dokončeno! Heslo bylo uloženo šifrovaně. Budete přesměrováni...",
@@ -44,7 +44,7 @@
             "networkError": "Síťová chyba při aktualizaci databáze."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

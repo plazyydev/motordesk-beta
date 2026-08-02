@@ -3,8 +3,8 @@
     <v-main class="admin-shell">
       <header class="admin-topbar">
         <a class="admin-brand" href="/admin.html">
-          <span class="admin-brand__mark">MD</span>
-          <span>MotorDesk Admin Hub</span>
+          <img :src="fallbackLogo" class="admin-brand__logo" alt="MotorDesk">
+          <span class="admin-brand__label">Admin Hub</span>
         </a>
         <div class="admin-topbar__actions">
           <v-chip size="small" variant="tonal" color="primary">
@@ -458,8 +458,10 @@ import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { oserpStore } from '@/core/stores/oserp.store.js'
 import { AuthStatus } from '@/core/constants/auth.js'
+import { MOTORDESK_FALLBACK_LOGO } from '@/core/branding.js'
 
 const oserp = oserpStore()
+const fallbackLogo = MOTORDESK_FALLBACK_LOGO
 
 const loading = ref(true)
 const errorMessage = ref('')
@@ -849,16 +851,21 @@ function readError(error, fallback) {
   letter-spacing: 0;
 }
 
-.admin-brand__mark {
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
-  font-size: 0.8rem;
+.admin-brand__logo {
+  height: 38px;
+  width: auto;
+  max-width: 184px;
+  object-fit: contain;
+}
+
+.admin-brand__label {
+  color: var(--md-color-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.v-theme--dark .admin-brand__logo {
+  filter: brightness(1.45) contrast(1.05);
 }
 
 .admin-topbar__actions,

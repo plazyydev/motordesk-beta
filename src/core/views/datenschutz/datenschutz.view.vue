@@ -1,7 +1,7 @@
 <template>
   <v-app-bar color="grey-lighten-4" elevation="1" density="comfortable">
     <v-toolbar-title class="text-h6">
-      <router-link to="/" class="text-decoration-none text-primary">OpensourceERP</router-link>
+      <router-link to="/" class="text-decoration-none text-primary">MotorDesk</router-link>
     </v-toolbar-title>
   </v-app-bar>
 
@@ -12,7 +12,7 @@
       <h2 class="text-h6 mt-4 mb-2">1. Verantwortlicher</h2>
       <p class="text-body-1 mb-4">
         Der Verantwortliche im Sinne der Datenschutz-Grundverordnung (DSGVO) ist der Betreiber
-        dieser OpensourceERP-Installation. Kontaktdaten entnehmen Sie bitte dem Impressum.
+        dieser MotorDesk-Installation. Kontaktdaten entnehmen Sie bitte dem Impressum.
       </p>
 
       <h2 class="text-h6 mt-4 mb-2">2. Erhebung und Verarbeitung personenbezogener Daten</h2>

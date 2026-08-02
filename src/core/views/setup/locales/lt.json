@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Sveiki atvykę į OpensourceERP! Sukonfigūruokite prisijungimą prie autentifikacijos duomenų bazės.",
+        "title": "MotorDesk Setup",
+        "welcome": "Sveiki atvykę į MotorDesk! Sukonfigūruokite prisijungimą prie autentifikacijos duomenų bazės.",
         "setupAlreadyDone": "Sąranka jau atlikta. Būsite nukreipti į prisijungimo puslapį...",
         "configFound": "kivitendo.conf rastas - Slaptažodis buvo neužšifruotas. Forma užpildyta automatiškai.",
         "setupCompleteMessage": "Sąranka sėkmingai baigta! Slaptažodis išsaugotas užšifruotai. Būsite nukreipti...",
@@ -44,7 +44,7 @@
             "networkError": "Tinklo klaida atnaujinant duomenų bazę."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Bem-vindo ao OpensourceERP! Por favor, configure a ligação à base de dados de autenticação.",
+        "title": "MotorDesk Setup",
+        "welcome": "Bem-vindo ao MotorDesk! Por favor, configure a ligação à base de dados de autenticação.",
         "setupAlreadyDone": "A configuração já foi realizada. Será redirecionado para a página de início de sessão...",
         "configFound": "kivitendo.conf encontrado - A palavra-passe não estava cifrada. O formulário foi preenchido automaticamente.",
         "setupCompleteMessage": "Configuração concluída com sucesso! A palavra-passe foi guardada de forma cifrada. Será redirecionado...",
@@ -44,7 +44,7 @@
             "networkError": "Erro de rede na atualização da base de dados."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Velkommen til OpensourceERP! Konfigurer venligst forbindelsen til godkendelsesdatabasen.",
+        "title": "MotorDesk Setup",
+        "welcome": "Velkommen til MotorDesk! Konfigurer venligst forbindelsen til godkendelsesdatabasen.",
         "setupAlreadyDone": "Setup er allerede gennemfoert. Du omdirigeres til loginsiden...",
         "configFound": "kivitendo.conf fundet - Adgangskoden var ukrypteret. Formularen er udfyldt automatisk.",
         "setupCompleteMessage": "Setup gennemfoert! Adgangskoden er gemt krypteret. Du omdirigeres...",
@@ -44,7 +44,7 @@
             "networkError": "Netvaerksfejl ved databaseopdatering."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

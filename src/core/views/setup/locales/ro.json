@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Bine ați venit la OpensourceERP! Vă rugăm configurați conexiunea la baza de date de autentificare.",
+        "title": "MotorDesk Setup",
+        "welcome": "Bine ați venit la MotorDesk! Vă rugăm configurați conexiunea la baza de date de autentificare.",
         "setupAlreadyDone": "Configurarea a fost deja efectuată. Veți fi redirecționat la pagina de autentificare...",
         "configFound": "kivitendo.conf găsit - Parola era necriptată. Formularul a fost completat automat.",
         "setupCompleteMessage": "Configurare finalizată cu succes! Parola a fost salvată criptat. Veți fi redirecționat...",
@@ -44,7 +44,7 @@
             "networkError": "Eroare de rețea la actualizarea bazei de date."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

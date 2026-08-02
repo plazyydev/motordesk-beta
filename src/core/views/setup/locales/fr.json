@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Bienvenue sur OpensourceERP ! Veuillez configurer la connexion a la base de donnees d'authentification.",
+        "title": "MotorDesk Setup",
+        "welcome": "Bienvenue sur MotorDesk ! Veuillez configurer la connexion a la base de donnees d'authentification.",
         "setupAlreadyDone": "La configuration a deja ete effectuee. Vous allez etre redirige vers la page de connexion...",
         "configFound": "kivitendo.conf trouve - Le mot de passe n'etait pas chiffre. Le formulaire a ete rempli automatiquement.",
         "setupCompleteMessage": "Configuration terminee avec succes ! Le mot de passe a ete chiffre et enregistre. Redirection en cours...",
@@ -44,7 +44,7 @@
             "networkError": "Erreur reseau lors de la mise a jour de la base de donnees."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

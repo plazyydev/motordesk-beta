@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP 设置",
-        "welcome": "欢迎使用 OpensourceERP！请配置认证数据库连接。",
+        "title": "MotorDesk 设置",
+        "welcome": "欢迎使用 MotorDesk！请配置认证数据库连接。",
         "setupAlreadyDone": "设置已完成。正在跳转到登录页面...",
         "configFound": "找到 kivitendo.conf — 密码未加密。表单已自动填充。",
         "setupCompleteMessage": "设置成功完成！密码已加密保存。正在跳转...",
@@ -44,7 +44,7 @@
             "networkError": "数据库更新时网络错误。"
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

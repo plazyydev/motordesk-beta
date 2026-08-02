@@ -1,7 +1,7 @@
 <template>
   <v-app-bar color="grey-lighten-4" elevation="1" density="comfortable">
     <v-toolbar-title class="text-h6">
-      <router-link to="/" class="text-decoration-none text-primary">OpensourceERP</router-link>
+      <router-link to="/" class="text-decoration-none text-primary">MotorDesk</router-link>
     </v-toolbar-title>
   </v-app-bar>
 

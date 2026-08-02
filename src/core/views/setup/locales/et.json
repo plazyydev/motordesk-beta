@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Tere tulemast OpensourceERP-i! Palun seadistage ühendus autentimisandmebaasiga.",
+        "title": "MotorDesk Setup",
+        "welcome": "Tere tulemast MotorDesk-i! Palun seadistage ühendus autentimisandmebaasiga.",
         "setupAlreadyDone": "Seadistamine on juba tehtud. Teid suunatakse sisselogimislehele...",
         "configFound": "kivitendo.conf leitud - Parool oli krüptimata. Vorm täideti automaatselt.",
         "setupCompleteMessage": "Seadistamine edukalt lõpetatud! Parool salvestati krüptitult. Teid suunatakse edasi...",
@@ -44,7 +44,7 @@
             "networkError": "Võrguviga andmebaasi uuendamisel."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Setup",
-        "welcome": "Laipni lūdzam OpensourceERP! Lūdzu konfigurējiet savienojumu ar autentifikācijas datu bāzi.",
+        "title": "MotorDesk Setup",
+        "welcome": "Laipni lūdzam MotorDesk! Lūdzu konfigurējiet savienojumu ar autentifikācijas datu bāzi.",
         "setupAlreadyDone": "Iestatīšana jau ir veikta. Jūs tiksiet novirzīts uz pieslēgšanās lapu...",
         "configFound": "kivitendo.conf atrasts - Parole bija nešifrēta. Forma tika aizpildīta automātiski.",
         "setupCompleteMessage": "Iestatīšana veiksmīgi pabeigta! Parole tika saglabāta šifrēti. Jūs tiksiet novirzīts...",
@@ -44,7 +44,7 @@
             "networkError": "Tīkla kļūda datu bāzes atjaunināšanā."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }

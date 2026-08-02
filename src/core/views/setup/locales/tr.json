@@ -1,7 +1,7 @@
 {
     "setup": {
-        "title": "OpensourceERP Kurulumu",
-        "welcome": "OpensourceERP'ye hoş geldiniz! Lütfen kimlik doğrulama veritabanı bağlantısını yapılandırın.",
+        "title": "MotorDesk Kurulumu",
+        "welcome": "MotorDesk'ye hoş geldiniz! Lütfen kimlik doğrulama veritabanı bağlantısını yapılandırın.",
         "setupAlreadyDone": "Kurulum zaten yapılmış. Giriş sayfasına yönlendiriliyorsunuz...",
         "configFound": "kivitendo.conf bulundu - Şifre şifrelenmemiş. Form otomatik olarak dolduruldu.",
         "setupCompleteMessage": "Kurulum başarıyla tamamlandı! Şifre şifrelenmiş olarak kaydedildi. Yönlendiriliyorsunuz...",
@@ -44,7 +44,7 @@
             "networkError": "Veritabanı güncellemesi sırasında ağ hatası."
         },
         "footer": {
-            "copyright": "OpensourceERP"
+            "copyright": "MotorDesk"
         }
     }
 }
