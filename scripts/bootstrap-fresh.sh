@@ -202,6 +202,21 @@ ALTER TABLE vendor ADD COLUMN IF NOT EXISTS phone3 text;
 SQL
 }
 
+ensure_lxcars_compatibility() {
+    info "Pruefe LxCars-Kompatibilitaetstabellen."
+    psql_db "$DB_COMPANY_NAME" <<'SQL'
+CREATE TABLE IF NOT EXISTS oe_defects (
+    id                  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    oe_id               INTEGER NOT NULL REFERENCES oe(id) ON DELETE CASCADE,
+    defect_code         text NOT NULL,
+    defect_description text NOT NULL,
+    defect_class       text NOT NULL,
+    note                text,
+    sort_order          INTEGER DEFAULT 0
+);
+SQL
+}
+
 seed_admin_employee() {
     info "Lege Admin-Mitarbeiter in $DB_COMPANY_NAME an/aktualisiere ihn."
     psql_db "$DB_COMPANY_NAME" \
@@ -274,10 +289,21 @@ else
     load_sql_file "$DB_COMPANY_NAME" "$CRM_SCHEMA_FILE"
 fi
 
-if table_exists "$DB_COMPANY_NAME" public cars_lxcars; then
-    success "LxCars-Erweiterung ist bereits vorhanden."
+seed_admin_employee
+seed_auth_database
+
+LXCARS_SCHEMA_FILE="$PROJECT_ROOT/backend/upstall/lxcars/company_schema.sql"
+if table_exists "$DB_COMPANY_NAME" public missing_orders_lxcars; then
+    success "LxCars-Erweiterung ist bereits vollstaendig vorhanden."
+elif table_exists "$DB_COMPANY_NAME" public cars_lxcars; then
+    warn "LxCars-Erweiterung ist unvollstaendig; setze den Import fort."
+    ensure_lxcars_compatibility
+    load_sql_from_marker \
+        "$DB_COMPANY_NAME" \
+        "$LXCARS_SCHEMA_FILE" \
+        "CREATE OR REPLACE FUNCTION notify_defect_change() RETURNS trigger AS"
 else
-    load_sql_file "$DB_COMPANY_NAME" "$PROJECT_ROOT/backend/upstall/lxcars/company_schema.sql"
+    load_sql_file "$DB_COMPANY_NAME" "$LXCARS_SCHEMA_FILE"
 fi
 
 if table_exists "$DB_COMPANY_NAME" public anpr_cameras_lxcars; then
@@ -285,9 +311,6 @@ if table_exists "$DB_COMPANY_NAME" public anpr_cameras_lxcars; then
 else
     load_sql_file "$DB_COMPANY_NAME" "$PROJECT_ROOT/backend/upstall/lxcars/anpr_schema.sql"
 fi
-
-seed_admin_employee
-seed_auth_database
 
 info "Starte/aktualisiere Web-Container."
 dc up -d --build web

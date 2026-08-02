@@ -420,6 +420,16 @@ DO $$ BEGIN
 END $$;
 
 -- Trigger: pg_notify bei Maengel-Aenderungen (SSE fuer Echtzeit-Updates in Faktura)
+CREATE TABLE IF NOT EXISTS oe_defects (
+    id                  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    oe_id               INTEGER NOT NULL REFERENCES oe(id) ON DELETE CASCADE,
+    defect_code         text NOT NULL,
+    defect_description text NOT NULL,
+    defect_class       text NOT NULL,
+    note                text,
+    sort_order          INTEGER DEFAULT 0
+);
+
 CREATE OR REPLACE FUNCTION notify_defect_change() RETURNS trigger AS $$
 DECLARE
     doc_id integer;
@@ -479,7 +489,7 @@ ALTER TABLE customer_ext ADD COLUMN IF NOT EXISTS hu_serienbrief_excluded boolea
 -- TÜV MÄNGELKLASSEN
 -- ============================================================================
 
-CREATE TABLE tuev_defect_classes (
+CREATE TABLE IF NOT EXISTS tuev_defect_classes (
     code            text PRIMARY KEY,
     bezeichnung     text NOT NULL,
     plakette        text,
@@ -498,7 +508,7 @@ COMMENT ON COLUMN tuev_defect_classes.beschreibung IS 'Ausführliche Beschreibun
 -- TÜV MÄNGELLISTE
 -- ============================================================================
 
-CREATE TABLE tuev_defect_catalog (
+CREATE TABLE IF NOT EXISTS tuev_defect_catalog (
     id                  integer NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     pruefgruppe_nr      text,
     pruefgruppe         text,
@@ -520,8 +530,8 @@ COMMENT ON COLUMN tuev_defect_catalog.defect_description IS 'Beschreibung des Ma
 COMMENT ON COLUMN tuev_defect_catalog.possible_classes IS 'Mögliche Mängelklassen, pipe-getrennt (z.B. GM|EM)';
 COMMENT ON COLUMN tuev_defect_catalog.is_custom IS 'True für benutzerdefinierte Mängel (nicht aus TÜV-Katalog)';
 
-CREATE INDEX idx_tuev_defect_catalog_defect_code ON tuev_defect_catalog(defect_code);
-CREATE INDEX idx_tuev_defect_catalog_pruefgruppe_nr ON tuev_defect_catalog(pruefgruppe_nr);
+CREATE INDEX IF NOT EXISTS idx_tuev_defect_catalog_defect_code ON tuev_defect_catalog(defect_code);
+CREATE INDEX IF NOT EXISTS idx_tuev_defect_catalog_pruefgruppe_nr ON tuev_defect_catalog(pruefgruppe_nr);
 
 -- ============================================================================
 -- MÄNGEL PRO AUFTRAG
