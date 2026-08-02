@@ -74,10 +74,18 @@ docker compose up -d --build
 Mindestens `POSTGRES_PASSWORD` muss geaendert werden. Fuer einen echten
 Serverbetrieb muessen ausserdem `DOMAIN` und `CERTBOT_EMAIL` gesetzt werden.
 
-Wichtig: Der normale Docker-Start erzeugt Container, Volumes und die
-Laufzeitkonfiguration. Eine fachlich nutzbare Datenbank entsteht aktuell nicht
-vollautomatisch aus einer leeren Installation. Dafuer wird entweder ein
-bestehender kivitendo/MotorDesk-Dump oder ein vorbereiteter Demo-Seed benoetigt.
+Der normale Docker-Start erzeugt Container, Volumes und die Laufzeitkonfiguration.
+Fuer eine frische Installation ohne vorhandene Dumps kann danach der Bootstrap
+ausgefuehrt werden.
+
+```bash
+ADMIN_PASSWORD='ein-starkes-passwort' bash scripts/bootstrap-fresh.sh
+```
+
+Das Skript erstellt `DB_AUTH_NAME` und `DB_COMPANY_NAME`, laedt das SKR04-Schema
+plus CRM/LxCars/ANPR-Erweiterungen und legt den ersten Admin-Benutzer an. Der
+Kontenrahmen kann vor dem Start mit `MOTORDESK_CHART=skr03` auf SKR03 geaendert
+werden.
 
 ## Docker-Helfer
 
@@ -98,6 +106,12 @@ Haeufige Kommandos:
 ./scripts/docker.sh up-all
 ./scripts/docker.sh status
 ./scripts/docker.sh logs web
+```
+
+Fresh-Install ohne Dumps:
+
+```bash
+ADMIN_PASSWORD='ein-starkes-passwort' bash scripts/bootstrap-fresh.sh
 ```
 
 ## Bestehende Datenbank-Dumps einspielen
@@ -172,6 +186,5 @@ Templates, Backups und Secrets einzeln geprueft werden.
   werden.
 - `php`, `composer` und `docker` muessen lokal im PATH vorhanden sein, wenn die
   entsprechenden Checks ausgefuehrt werden sollen.
-- Eine vollautomatische frische Produktionsdatenbank ist noch nicht fertig.
 - `backend/config/settings.iniBAK` muss auf echte Secrets geprueft werden und
   darf nicht versehentlich versioniert werden.
