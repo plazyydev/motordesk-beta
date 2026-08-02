@@ -1315,6 +1315,9 @@ function updateArExt($data) {
  */
 function getScans($data) {
     $db = DbhCompany::begin();
+    $apiConfigured = true;
+    $syncSkipped = false;
+    $syncMessage = '';
 
     if (defined('DEMO_MODE') && DEMO_MODE) {
         // Demo: Scan aus CSV in DB seeden (idempotent)
@@ -1328,15 +1331,16 @@ function getScans($data) {
         );
 
         if (!$row || empty($row['value'])) {
-            resultInfo(false, 'NO_API_KEY', 'Kein API-Key konfiguriert (lxcarsapi)');
-            return;
-        }
+            $apiConfigured = false;
+            $syncSkipped = true;
+            $syncMessage = 'Kein API-Key konfiguriert; lokale Scans werden angezeigt.';
+        } else {
+            $apiKey = $row['value'];
 
-        $apiKey = $row['value'];
-
-        // Neue Scans von der API holen und in DB cachen (nur auf Seite 1)
-        if (($data['page'] ?? 1) == 1) {
-            syncScansFromApi($db, $apiKey, intval($data['per_page'] ?? 20));
+            // Neue Scans von der API holen und in DB cachen (nur auf Seite 1)
+            if (($data['page'] ?? 1) == 1) {
+                syncScansFromApi($db, $apiKey, intval($data['per_page'] ?? 20));
+            }
         }
     }
 
@@ -1382,6 +1386,9 @@ function getScans($data) {
         'page' => $page,
         'per_page' => $perPage,
         'total_pages' => max(1, ceil($total / $perPage)),
+        'api_configured' => $apiConfigured,
+        'sync_skipped' => $syncSkipped,
+        'message' => $syncMessage,
     ]);
 }
 
@@ -1764,6 +1771,7 @@ function lookupKbaFuzzy($data) {
     //    Ungültige HSN (Buchstaben wie "B333") überspringen Phase 1:
     //    Auch wenn ein Falscheintrag in der DB existiert, soll der Korrektur-Dialog erscheinen.
 
+    try {
     if (preg_match('/^\d{4}$/', $hsn)) {
         $exact = $db->getAll(
             "SELECT $kbaSelectFields
@@ -1797,6 +1805,15 @@ function lookupKbaFuzzy($data) {
     );
 
     resultInfo(true, 'OK', ['exact' => false, 'suggestions' => $suggestions ?: []]);
+    } catch (\Throwable $e) {
+        writeLog('KBA-Lookup nicht verfuegbar: ' . $e->getMessage(), true, DLOG_WRN);
+        resultInfo(true, 'KBA_DATA_UNAVAILABLE', [
+            'exact' => false,
+            'suggestions' => [],
+            'unavailable' => true,
+            'message' => 'KBA-Daten sind noch nicht importiert.'
+        ]);
+    }
 }
 
 /**
@@ -1820,6 +1837,7 @@ function lookupKba($data) {
     }
 
     $db = DbhCompany::begin();
+    try {
 
     // Mit D2: zuerst exakten Treffer versuchen
     if ($d2 !== '') {
@@ -1840,6 +1858,10 @@ function lookupKba($data) {
     );
 
     resultInfo(true, 'OK', $rows ?: []);
+    } catch (\Throwable $e) {
+        writeLog('KBA-Lookup nicht verfuegbar: ' . $e->getMessage(), true, DLOG_WRN);
+        resultInfo(true, 'KBA_DATA_UNAVAILABLE', []);
+    }
 }
 
 /**
@@ -1860,6 +1882,7 @@ function lookupKbaByHsn($data) {
     }
 
     $db = DbhCompany::begin();
+    try {
     $rows = $db->getAll(
         "SELECT id, hsn, tsn, d2, d1, hersteller, marke, name, fhzart,
                 klasse, aufbau, antrieb, sitze, datum, achsen, masse,
@@ -1871,6 +1894,10 @@ function lookupKbaByHsn($data) {
     );
 
     resultInfo(true, 'OK', $rows ?: []);
+    } catch (\Throwable $e) {
+        writeLog('KBA-HSN-Lookup nicht verfuegbar: ' . $e->getMessage(), true, DLOG_WRN);
+        resultInfo(true, 'KBA_DATA_UNAVAILABLE', []);
+    }
 }
 
 /**
@@ -2177,10 +2204,34 @@ function prepareKba($kbaData) {
 }
 
 /**
- * Scannt einen Fahrzeugschein über die fahrzeugschein-scanner.de API (Upload)
+ * Speichert einen hochgeladenen Fahrzeugschein temporaer bis zur Fahrzeuganlage.
+ */
+function lxcarsStoreTempScanUpload($image, $isPdf) {
+    if (preg_match('/^data:[^;]+;base64,(.*)$/', (string)$image, $matches)) {
+        $image = $matches[1];
+    }
+    $image = preg_replace('/\s+/', '', (string)$image);
+    $decoded = base64_decode($image, true);
+    if ($decoded === false) {
+        return null;
+    }
+
+    $tempDir = fmDataDir() . '/fahrzeuge/0_temp';
+    if (!is_dir($tempDir)) {
+        mkdir($tempDir, 0755, true);
+    }
+
+    $tempId = bin2hex(random_bytes(16));
+    $ext = $isPdf ? 'pdf' : 'jpg';
+    file_put_contents($tempDir . '/' . $tempId . '.' . $ext, $decoded);
+    return $tempId;
+}
+
+/**
+ * Scannt einen Fahrzeugschein ueber die fahrzeugschein-scanner.de API (Upload)
  *
  * Erwartet: { action: 'scanFahrzeugschein', image: '<base64>', is_pdf: false }
- * Gibt zurück: { success: true, payload: { car: {...}, owner: {...}, raw: {...} } }
+ * Gibt zurueck: { success: true, payload: { car: {...}, owner: {...}, raw: {...} } }
  */
 function scanFahrzeugschein($data) {
     $db = DbhCompany::begin();
@@ -2191,6 +2242,14 @@ function scanFahrzeugschein($data) {
         return;
     }
 
+    $image = $data['image'] ?? '';
+    $isPdf = !empty($data['is_pdf']);
+
+    if (empty($image)) {
+        resultInfo(false, 'VALIDATION_ERROR', 'Kein Bild uebergeben');
+        return;
+    }
+
     // API-Key aus defaults_oserp lesen
     $row = $db->getOne(
         "SELECT value FROM defaults_oserp WHERE key = 'lxcarsapi'",
@@ -2198,18 +2257,23 @@ function scanFahrzeugschein($data) {
     );
 
     if (!$row || empty($row['value'])) {
-        resultInfo(false, 'NO_API_KEY', 'Kein API-Key für den Fahrzeugschein-Scanner konfiguriert (lxcarsapi)');
+        $tempId = lxcarsStoreTempScanUpload($image, $isPdf);
+        resultInfo(true, 'SCAN_MANUAL_FALLBACK', [
+            'car' => [],
+            'kba' => ['hsn' => '', 'tsn' => ''],
+            'owner' => [],
+            'raw' => ['manual_scan_required' => true],
+            'images' => [],
+            'country_code' => 'de',
+            'temp_image_id' => $tempId,
+            'scan_mode' => 'manual',
+            'manual_required' => true,
+            'message' => 'Kein Scanner-API-Key konfiguriert; Original wurde gespeichert, bitte Daten manuell eintragen.'
+        ]);
         return;
     }
 
     $apiKey = $row['value'];
-    $image = $data['image'] ?? '';
-    $isPdf = !empty($data['is_pdf']);
-
-    if (empty($image)) {
-        resultInfo(false, 'VALIDATION_ERROR', 'Kein Bild übergeben');
-        return;
-    }
 
     // API-Request an fahrzeugschein-scanner.de
     $requestBody = json_encode([
@@ -2267,17 +2331,7 @@ function scanFahrzeugschein($data) {
     }
 
     // Original-Bild als Temp-Datei speichern (für späteres Verknüpfen mit c_id)
-    $tempId = null;
-    $tempDir = fmDataDir() . '/fahrzeuge/0_temp';
-    if (!is_dir($tempDir)) {
-        mkdir($tempDir, 0755, true);
-    }
-    $decoded = base64_decode($image);
-    if ($decoded !== false) {
-        $tempId = bin2hex(random_bytes(16));
-        $ext = $isPdf ? 'pdf' : 'jpg';
-        file_put_contents($tempDir . '/' . $tempId . '.' . $ext, $decoded);
-    }
+    $tempId = lxcarsStoreTempScanUpload($image, $isPdf);
 
     // Gemeinsame Mapping-Funktion nutzen
     $mapped = mapScanToCarFields($scanData);

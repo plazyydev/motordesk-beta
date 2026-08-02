@@ -194,6 +194,80 @@ load_sql_from_marker() {
         | dc exec -T db psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$db_name"
 }
 
+table_row_count() {
+    local db_name="$1"
+    local schema_name="$2"
+    local table_name="$3"
+    local count
+    count="$(
+        psql_db "$db_name" \
+            -tA \
+            -c "SELECT COUNT(*) FROM ${schema_name}.${table_name}" \
+            | tr -d '[:space:]'
+    )"
+    printf '%s\n' "${count:-0}"
+}
+
+import_company_csv_if_empty() {
+    local table_name="$1"
+    local csv_file="$2"
+    local count
+    local columns
+    local import_status
+
+    if ! table_exists "$DB_COMPANY_NAME" public "$table_name"; then
+        warn "CSV-Import uebersprungen: Tabelle fehlt: $table_name"
+        return
+    fi
+
+    if [[ ! -f "$csv_file" ]]; then
+        warn "CSV-Import uebersprungen: Datei fehlt: $csv_file"
+        return
+    fi
+
+    count="$(table_row_count "$DB_COMPANY_NAME" public "$table_name")"
+    if [[ "$count" != "0" ]]; then
+        success "Stammdaten vorhanden: $table_name ($count Zeilen)"
+        return
+    fi
+
+    columns="$(head -n 1 "$csv_file" | tr -d '\r')"
+    info "Importiere Stammdaten nach $table_name aus ${csv_file#"$PROJECT_ROOT/"}"
+
+    if [[ "$table_name" == "kba_lxcars" ]]; then
+        psql_db "$DB_COMPANY_NAME" -c "ALTER TABLE public.kba_lxcars DISABLE TRIGGER USER"
+    fi
+
+    set +e
+    dc exec -T db psql \
+        -v ON_ERROR_STOP=1 \
+        -U "$POSTGRES_USER" \
+        -d "$DB_COMPANY_NAME" \
+        -c "\\copy public.${table_name} (${columns}) FROM STDIN WITH (FORMAT csv, HEADER true)" \
+        < "$csv_file"
+    import_status=$?
+    set -e
+
+    if [[ "$table_name" == "kba_lxcars" ]]; then
+        psql_db "$DB_COMPANY_NAME" -c "ALTER TABLE public.kba_lxcars ENABLE TRIGGER USER"
+    fi
+
+    if [[ "$import_status" -ne 0 ]]; then
+        error "CSV-Import fehlgeschlagen: $table_name"
+        exit 1
+    fi
+
+    count="$(table_row_count "$DB_COMPANY_NAME" public "$table_name")"
+    success "Stammdaten importiert: $table_name ($count Zeilen)"
+}
+
+import_lxcars_company_data() {
+    local data_dir="$PROJECT_ROOT/backend/upstall/lxcars/company_data"
+    import_company_csv_if_empty "kba_lxcars" "$data_dir/kba_lxcars.csv"
+    import_company_csv_if_empty "tuev_defect_classes" "$data_dir/tuev_defect_classes.csv"
+    import_company_csv_if_empty "tuev_defect_catalog" "$data_dir/tuev_defect_catalog.csv"
+}
+
 ensure_company_compatibility() {
     info "Pruefe Company-Kompatibilitaetsspalten."
     psql_db "$DB_COMPANY_NAME" <<'SQL'
@@ -315,6 +389,8 @@ elif table_exists "$DB_COMPANY_NAME" public cars_lxcars; then
 else
     load_sql_file "$DB_COMPANY_NAME" "$LXCARS_SCHEMA_FILE"
 fi
+
+import_lxcars_company_data
 
 if table_exists "$DB_COMPANY_NAME" public anpr_cameras_lxcars; then
     success "ANPR-Erweiterung ist bereits vorhanden."

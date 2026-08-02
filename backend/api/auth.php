@@ -166,7 +166,62 @@ function mdAuthEnsureUserClientAdminAccess($auth, int $clientId, int $userId) {
 }
 
 /**
- * Lädt die Liste aller verfügbaren Mandanten
+ * Stellt eine direkte Verbindung zur Firmen-Datenbank eines Mandanten her.
+ */
+function mdAuthCompanyDbForClient($auth, int $clientId): ApiDatabase {
+    $client = $auth->getOne(
+        'SELECT dbhost, dbport, dbname, dbuser, dbpasswd
+         FROM auth.clients
+         WHERE id = :client_id',
+        [':client_id' => $clientId]
+    );
+
+    if (!$client) {
+        throw new ApiError('CLIENT_NOT_FOUND', 'Firma wurde nicht gefunden');
+    }
+
+    return new ApiDatabase(connectPDO(
+        $client['dbhost'],
+        $client['dbport'],
+        $client['dbname'],
+        $client['dbuser'],
+        $client['dbpasswd']
+    ));
+}
+
+function mdAuthEnsureCompanyEmployeeForUser($auth, int $clientId, int $userId, string $login): void {
+    $user = $auth->getOne(
+        'SELECT name, email FROM auth."user" WHERE id = :user_id',
+        [':user_id' => $userId]
+    ) ?: [];
+
+    try {
+        $company = mdAuthCompanyDbForClient($auth, $clientId);
+        $company->execute(
+            "INSERT INTO employee (login, name, sales, deleted, deleted_email, itime)
+             VALUES (:login, :name, true, false, :email, now())
+             ON CONFLICT (login) DO UPDATE SET
+                 name = COALESCE(NULLIF(:name_update, ''), employee.name),
+                 deleted = false,
+                 sales = true,
+                 deleted_email = COALESCE(NULLIF(:email_update, ''), employee.deleted_email),
+                 mtime = now()",
+            [
+                ':login' => $login,
+                ':name' => trim($user['name'] ?? '') ?: $login,
+                ':email' => trim($user['email'] ?? ''),
+                ':name_update' => trim($user['name'] ?? ''),
+                ':email_update' => trim($user['email'] ?? ''),
+            ]
+        );
+    } catch (\Throwable $e) {
+        writeLog('Panel-Wechsel: Mitarbeiter konnte nicht vorbereitet werden: ' . $e->getMessage(), true, DLOG_ERR);
+        throw new ApiError('CLIENT_DATABASE_NOT_READY', 'Das Panel ist noch nicht vollstaendig vorbereitet. Bitte Datenbank-Update im Admin Hub ausfuehren.');
+    }
+}
+
+/**
+ * Laedt die Liste aller verfuegbaren Mandanten
  *
  * @param array $data Eingabedaten (wird nicht verwendet)
  * @return void Gibt JSON mit Mandantenliste aus
@@ -518,8 +573,10 @@ function switchClient($data) {
         [':client_id' => $clientId, ':session_id' => $sessionId]
     );
 
+    mdAuthEnsureCompanyEmployeeForUser($auth, $clientId, intval($userId), $context['login']);
+
     $dbhCompany = DbhCompany::begin();
-    $employeeId = $dbhCompany->getOne(
+    $employeeRow = $dbhCompany->getOne(
         "SELECT id FROM employee WHERE login = :login",
         [':login' => $context['login']]
     );
@@ -531,7 +588,7 @@ function switchClient($data) {
         'is_system_client' => !empty($clientName[0]['is_system']),
         'user_id' => $userId,
         'client_id' => $clientId,
-        'employee_id' => $employeeId,
+        'employee_id' => isset($employeeRow['id']) ? intval($employeeRow['id']) : null,
         'auth_user_data' => getAuthUserData(),
         'permissions' => $auth->fetchAllPermissions(),
         'auth_groups' => $auth->fetchClientGroups(),
