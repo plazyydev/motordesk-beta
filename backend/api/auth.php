@@ -22,18 +22,45 @@ function mdAuthFallbackCompanyNumber($id) {
 
 function mdAuthEnsureClientMetadata($auth) {
     $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS company_number text");
+    $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS is_system boolean NOT NULL DEFAULT false");
     $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS master_data_locked boolean NOT NULL DEFAULT true");
     $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS verification_status text NOT NULL DEFAULT 'pending'");
     $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS setup_status text NOT NULL DEFAULT 'needs_review'");
+    $auth->execute("UPDATE auth.clients SET is_system = false WHERE is_system IS NULL");
+    $auth->execute("
+        WITH only_client AS (
+            SELECT id
+            FROM auth.clients
+            WHERE (SELECT COUNT(*) FROM auth.clients) = 1
+            LIMIT 1
+        )
+        UPDATE auth.clients
+        SET is_system = true,
+            company_number = '0',
+            master_data_locked = true,
+            verification_status = 'verified',
+            setup_status = 'operator',
+            is_default = true,
+            mtime = now()
+        WHERE id IN (SELECT id FROM only_client)
+          AND (
+              company_number IS NULL
+              OR btrim(company_number) = ''
+              OR company_number = '2200'
+              OR company_number ~ '^MD-[0-9]+$'
+          )
+    ");
     $auth->execute("
         UPDATE auth.clients
         SET company_number = (2199 + substring(company_number FROM '^MD-0*([0-9]+)$')::integer)::text
         WHERE company_number ~ '^MD-[0-9]+$'
+          AND COALESCE(is_system, false) = false
     ");
     $auth->execute("
         UPDATE auth.clients
         SET company_number = (2199 + id)::text
-        WHERE company_number IS NULL OR btrim(company_number) = ''
+        WHERE (company_number IS NULL OR btrim(company_number) = '')
+          AND COALESCE(is_system, false) = false
     ");
     $auth->execute("UPDATE auth.clients SET master_data_locked = true WHERE master_data_locked IS NULL");
     $auth->execute("UPDATE auth.clients SET verification_status = 'pending' WHERE verification_status IS NULL OR verification_status = ''");
@@ -47,6 +74,7 @@ function mdAuthNextCompanyNumber($auth) {
         SELECT GREATEST(COALESCE(MAX(company_number::integer) + 1, 2200), 2200) AS next_num
         FROM auth.clients
         WHERE company_number ~ '^[0-9]+$'
+          AND COALESCE(is_system, false) = false
     ");
     return (string)intval($row['next_num'] ?? 2200);
 }
@@ -136,8 +164,10 @@ function getClients($data) {
                 name,
                 company_number,
                 company_number || ' - ' || name AS login_label,
-                is_default
+                is_default,
+                is_system
             FROM auth.clients
+            WHERE COALESCE(is_system, false) = false
             ORDER BY company_number, name
         ) AS clients
     SQL;
@@ -224,7 +254,7 @@ function login($data) {
     $auth->setClientId($clientId);
 
     $query = <<<SQL
-        SELECT name, company_number
+        SELECT name, company_number, is_system
         FROM auth.clients_users cu
         JOIN auth.clients c ON cu.client_id = c.id
         WHERE client_id = :client_id
@@ -285,6 +315,7 @@ function login($data) {
             "login" => $context['login'],
             "client" => $clientName[0]['name'],
             "company_number" => $clientName[0]['company_number'],
+            "is_system_client" => !empty($clientName[0]['is_system']),
             "user_id" => $userId,
             "client_id" => $clientId,
             "employee_id" => $employeeId,
@@ -343,7 +374,8 @@ function restoreSession($data) {
             remember_me,
             u.login,
             c.name AS client_name,
-            c.company_number
+            c.company_number,
+            c.is_system
         FROM auth.session_oserp s
         JOIN auth.user u ON s.user_id = u.id
         JOIN auth.clients c ON s.client_id = c.id
@@ -383,6 +415,7 @@ function restoreSession($data) {
         "login" => $context['login'],
         "client" => $context['client_name'],
         "company_number" => $context['company_number'],
+        "is_system_client" => !empty($context['is_system']),
         "auth_user_data" => getAuthUserData(),
         "permissions" => $session->fetchAllPermissions(),
         "auth_groups" => $session->fetchClientGroups(),
@@ -429,7 +462,7 @@ function switchClient($data) {
 
     // Prüfen ob Benutzer dem neuen Mandanten zugeordnet ist
     $query = <<<SQL
-        SELECT name, company_number
+        SELECT name, company_number, is_system
         FROM auth.clients_users cu
         JOIN auth.clients c ON cu.client_id = c.id
         WHERE client_id = :client_id
@@ -446,7 +479,7 @@ function switchClient($data) {
         }
 
         $targetClient = $auth->getOne(
-            'SELECT name, company_number FROM auth.clients WHERE id = :client_id',
+            'SELECT name, company_number, is_system FROM auth.clients WHERE id = :client_id',
             [':client_id' => $clientId]
         );
         if (!$targetClient) {
@@ -476,6 +509,7 @@ function switchClient($data) {
         'login' => $context['login'],
         'client' => $clientName[0]['name'],
         'company_number' => $clientName[0]['company_number'],
+        'is_system_client' => !empty($clientName[0]['is_system']),
         'user_id' => $userId,
         'client_id' => $clientId,
         'employee_id' => $employeeId,

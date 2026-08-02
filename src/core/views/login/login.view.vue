@@ -29,7 +29,7 @@
               />
               <v-text-field
                 id="client" v-model="clientCode" :label="t('LoginView.client')" autocomplete="organization"
-                inputmode="numeric" pattern="[0-9]*" placeholder="2200"
+                inputmode="numeric" pattern="[0-9]*" :placeholder="clientPlaceholder"
                 variant="outlined" density="comfortable" class="pt-3"
                 @update:model-value="clientCode = normalizeCompanyNumber(clientCode)"
                 @focus="clearError" @keydown="clearError" @keyup.enter="login"
@@ -92,7 +92,9 @@ export default {
     // Form-State
     const username    = ref('')
     const password    = ref('')
-    const clientCode  = ref('')
+    const isAdminRedirect = String(route.query.redirect || '').includes('/admin.html')
+    const clientCode  = ref(isAdminRedirect ? '0' : '')
+    const clientPlaceholder = isAdminRedirect ? '0' : '2200'
     const rememberMe  = ref(false)
 
     // UI-State
@@ -189,7 +191,7 @@ export default {
     }
 
     return {
-      t, username, password, clientCode, rememberMe,
+      t, username, password, clientCode, clientPlaceholder, rememberMe,
       loading, errorMessage, errorType, clearError, login,
       updateLoading, updateSuccess, updateError, runUpdate, normalizeCompanyNumber
     }

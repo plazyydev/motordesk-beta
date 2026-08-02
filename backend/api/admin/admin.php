@@ -123,7 +123,9 @@ function mdAdminClientConnection(ApiSession $auth, int $clientId): array {
     $client = $auth->getOne(
         'SELECT id, name, company_number, dbhost, dbport, dbname, dbuser, dbpasswd,
                 master_data_locked, verification_status, setup_status
-         FROM auth.clients WHERE id = :id',
+         FROM auth.clients
+         WHERE id = :id
+           AND COALESCE(is_system, false) = false',
         [':id' => $clientId]
     );
     if (!$client) {
@@ -284,7 +286,11 @@ function mdAdminSendInviteMail(ApiDatabase $company, array $invite, array $crede
 function getAdminOverview($data) {
     $context = mdAdminRequireHubAccess();
     $auth = $context['auth'];
-    $clientFilterSql = $context['is_operator'] ? '' : 'WHERE c.id = :current_client_id';
+    $clientFilters = ['COALESCE(c.is_system, false) = false'];
+    if (!$context['is_operator']) {
+        $clientFilters[] = 'c.id = :current_client_id';
+    }
+    $clientFilterSql = 'WHERE ' . implode(' AND ', $clientFilters);
     $clientParams = $context['is_operator'] ? [] : [':current_client_id' => $context['current_client_id']];
 
     $clients = $auth->getAll(
@@ -306,7 +312,11 @@ function getAdminOverview($data) {
         $clientParams
     );
 
-    $userFilterSql = $context['is_operator'] ? '' : 'WHERE cu.client_id = :current_client_id';
+    $userFilters = ['COALESCE(c.is_system, false) = false'];
+    if (!$context['is_operator']) {
+        $userFilters[] = 'cu.client_id = :current_client_id';
+    }
+    $userFilterSql = 'WHERE ' . implode(' AND ', $userFilters);
     $userParams = $context['is_operator'] ? [] : [':current_client_id' => $context['current_client_id']];
     $users = $auth->getAll(
         'SELECT u.id,
@@ -317,13 +327,18 @@ function getAdminOverview($data) {
                 COUNT(DISTINCT cu.client_id) AS client_count
          FROM auth."user" u
          JOIN auth.clients_users cu ON cu.user_id = u.id
+         JOIN auth.clients c ON c.id = cu.client_id
          ' . $userFilterSql . '
          GROUP BY u.id, u.login, u.name, u.email, u.active
          ORDER BY u.login',
         $userParams
     );
 
-    $inviteFilterSql = $context['is_operator'] ? '' : 'WHERE i.client_id = :current_client_id';
+    $inviteFilters = ['COALESCE(c.is_system, false) = false'];
+    if (!$context['is_operator']) {
+        $inviteFilters[] = 'i.client_id = :current_client_id';
+    }
+    $inviteFilterSql = 'WHERE ' . implode(' AND ', $inviteFilters);
     $inviteParams = $context['is_operator'] ? [] : [':current_client_id' => $context['current_client_id']];
     $invites = $auth->getAll(
         'SELECT i.id,
@@ -567,6 +582,7 @@ function updateCompanyPanelSettings($data) {
              master_data_locked = :master_data_locked,
              mtime = now()
          WHERE id = :client_id
+           AND COALESCE(is_system, false) = false
          RETURNING id AS code, name, company_number, dbname, is_default,
                    master_data_locked, verification_status, setup_status',
         [

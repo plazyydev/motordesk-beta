@@ -197,11 +197,11 @@ function createCompany($data) {
         $newClientId = $auth->getOne(
             "INSERT INTO auth.clients (
                  name, company_number, dbhost, dbport, dbname, dbuser, dbpasswd,
-                 master_data_locked, verification_status, setup_status
+                 is_system, master_data_locked, verification_status, setup_status
              )
              VALUES (
                  :name, :company_number, :dbhost, :dbport, :dbname, :dbuser, :dbpasswd,
-                 true, 'pending', 'needs_review'
+                 false, true, 'pending', 'needs_review'
              )
              RETURNING id",
             [

@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS auth.clients (
     dbuser text NOT NULL,
     dbpasswd text NOT NULL,
     is_default boolean NOT NULL DEFAULT false,
+    is_system boolean NOT NULL DEFAULT false,
     master_data_locked boolean NOT NULL DEFAULT true,
     verification_status text NOT NULL DEFAULT 'pending',
     setup_status text NOT NULL DEFAULT 'needs_review',
@@ -39,17 +40,44 @@ CREATE UNIQUE INDEX IF NOT EXISTS auth_clients_name_key
     ON auth.clients (name);
 
 ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS company_number text;
+ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS is_system boolean NOT NULL DEFAULT false;
 ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS master_data_locked boolean NOT NULL DEFAULT true;
 ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS verification_status text NOT NULL DEFAULT 'pending';
 ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS setup_status text NOT NULL DEFAULT 'needs_review';
 
+UPDATE auth.clients SET is_system = false WHERE is_system IS NULL;
+
+WITH only_client AS (
+    SELECT id
+    FROM auth.clients
+    WHERE (SELECT COUNT(*) FROM auth.clients) = 1
+    LIMIT 1
+)
+UPDATE auth.clients
+SET is_system = true,
+    company_number = '0',
+    master_data_locked = true,
+    verification_status = 'verified',
+    setup_status = 'operator',
+    is_default = true,
+    mtime = now()
+WHERE id IN (SELECT id FROM only_client)
+  AND (
+      company_number IS NULL
+      OR btrim(company_number) = ''
+      OR company_number = '2200'
+      OR company_number ~ '^MD-[0-9]+$'
+  );
+
 UPDATE auth.clients
 SET company_number = (2199 + substring(company_number FROM '^MD-0*([0-9]+)$')::integer)::text
-WHERE company_number ~ '^MD-[0-9]+$';
+WHERE company_number ~ '^MD-[0-9]+$'
+  AND COALESCE(is_system, false) = false;
 
 UPDATE auth.clients
 SET company_number = (2199 + id)::text
-WHERE company_number IS NULL OR btrim(company_number) = '';
+WHERE (company_number IS NULL OR btrim(company_number) = '')
+  AND COALESCE(is_system, false) = false;
 
 UPDATE auth.clients SET master_data_locked = true WHERE master_data_locked IS NULL;
 UPDATE auth.clients SET verification_status = 'pending' WHERE verification_status IS NULL OR verification_status = '';
@@ -176,6 +204,7 @@ seeded_client AS (
         dbuser,
         dbpasswd,
         is_default,
+        is_system,
         master_data_locked,
         verification_status,
         setup_status,
@@ -183,7 +212,7 @@ seeded_client AS (
     )
     VALUES (
         :'client_name',
-        '2200',
+        '0',
         'db',
         '5432',
         :'company_db',
@@ -191,21 +220,23 @@ seeded_client AS (
         :'db_pass',
         true,
         true,
+        true,
         'verified',
-        'ready',
+        'operator',
         now()
     )
     ON CONFLICT (name) DO UPDATE SET
-        company_number = COALESCE(auth.clients.company_number, EXCLUDED.company_number),
         dbhost = EXCLUDED.dbhost,
         dbport = EXCLUDED.dbport,
         dbname = EXCLUDED.dbname,
         dbuser = EXCLUDED.dbuser,
         dbpasswd = EXCLUDED.dbpasswd,
         is_default = true,
+        is_system = true,
+        company_number = '0',
         master_data_locked = COALESCE(auth.clients.master_data_locked, EXCLUDED.master_data_locked),
         verification_status = COALESCE(NULLIF(auth.clients.verification_status, ''), EXCLUDED.verification_status),
-        setup_status = COALESCE(NULLIF(auth.clients.setup_status, ''), EXCLUDED.setup_status),
+        setup_status = 'operator',
         mtime = now()
     RETURNING id
 ),

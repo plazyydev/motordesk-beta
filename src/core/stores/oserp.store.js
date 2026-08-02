@@ -51,6 +51,7 @@ export const oserpStore = defineStore('oserpStore', () => {
         user: '',
         client: '',
         company_number: '',
+        is_system_client: false,
         auth_user_data: null,
         auth_groups: [],
         permissions: [],
@@ -202,6 +203,7 @@ export const oserpStore = defineStore('oserpStore', () => {
         session.user = responseData.payload.login;
         session.client = responseData.payload.client;
         session.company_number = responseData.payload.company_number || '';
+        session.is_system_client = !!responseData.payload.is_system_client;
         session.auth_user_data = responseData.payload.auth_user_data;
         session.auth_groups = responseData.payload.auth_groups || [];
         session.permissions = responseData.payload.permissions;
@@ -338,6 +340,7 @@ export const oserpStore = defineStore('oserpStore', () => {
             session.user = '';
             session.client = '';
             session.company_number = '';
+            session.is_system_client = false;
         } else {
             throw new ApiError('ApiError', response.data.text);
         }

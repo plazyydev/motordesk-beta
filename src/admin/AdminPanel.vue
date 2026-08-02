@@ -2,7 +2,7 @@
   <v-app>
     <v-main class="admin-shell">
       <header class="admin-topbar">
-        <a class="admin-brand" href="/">
+        <a class="admin-brand" href="/admin.html">
           <span class="admin-brand__mark">MD</span>
           <span>MotorDesk Admin Hub</span>
         </a>
@@ -10,7 +10,13 @@
           <v-chip size="small" variant="tonal" color="primary">
             {{ sessionLabel }}
           </v-chip>
-          <v-btn href="/" variant="tonal" color="primary" prepend-icon="mdi-arrow-left">
+          <v-btn
+            href="/startup"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-arrow-left"
+            :disabled="oserp.session.is_system_client || !clients.length"
+          >
             App
           </v-btn>
           <v-btn icon="mdi-logout" variant="text" title="Logout" @click="logout" />
@@ -96,7 +102,24 @@
           </div>
 
           <template v-else>
-            <div class="company-grid">
+            <div v-if="!clients.length" class="empty-state company-empty">
+              <v-icon color="primary" size="34">mdi-domain-plus</v-icon>
+              <div>
+                <strong>Noch kein Kundenpanel angelegt.</strong>
+                <span>Lege zuerst ein Panel an. Die erste automatische Firmennummer ist 2200.</span>
+              </div>
+              <v-btn
+                v-if="canCreateCompany"
+                color="primary"
+                variant="flat"
+                prepend-icon="mdi-domain-plus"
+                @click="openCreateCompanyDialog"
+              >
+                Erstes Panel anlegen
+              </v-btn>
+            </div>
+
+            <div v-else class="company-grid">
               <v-card
                 v-for="client in clients"
                 :key="client.code"
@@ -1063,6 +1086,25 @@ function readError(error, fallback) {
   color: var(--md-color-muted);
   border: 1px dashed var(--md-color-line);
   border-radius: 8px;
+}
+
+.company-empty {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.company-empty div {
+  min-width: 220px;
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.company-empty strong {
+  color: var(--md-color-ink);
 }
 
 @media (max-width: 860px) {
