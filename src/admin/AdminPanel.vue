@@ -10,6 +10,8 @@
           <v-chip size="small" variant="tonal" color="primary">
             {{ sessionLabel }}
           </v-chip>
+          <v-btn icon="mdi-text-box-search-outline" variant="text" title="Logs" @click="openLogs('web')" />
+          <v-btn icon="mdi-cog-outline" variant="text" title="Einstellungen" @click="openSettingsDrawer" />
           <v-btn
             href="/startup"
             variant="tonal"
@@ -24,34 +26,40 @@
       </header>
 
       <section class="admin-layout">
-        <aside class="admin-side">
-          <div>
-            <p class="admin-kicker">{{ isOperator ? 'Betreiber' : 'Firma' }}</p>
-            <h1>{{ isOperator ? 'Admin Hub' : 'Panel Admin' }}</h1>
-          </div>
-
-          <div class="admin-stat">
-            <span>Panels</span>
-            <strong>{{ clients.length }}</strong>
-          </div>
-          <div class="admin-stat">
-            <span>Benutzer</span>
-            <strong>{{ users.length }}</strong>
-          </div>
-          <div class="admin-stat">
-            <span>Einladungen</span>
-            <strong>{{ invites.length }}</strong>
-          </div>
-          <div class="admin-stat">
-            <span>Rolle</span>
-            <strong>{{ isOperator ? 'Betreiber' : 'Firmen-Admin' }}</strong>
-          </div>
-        </aside>
-
         <main class="admin-content">
           <v-alert v-if="errorMessage" type="error" variant="tonal" closable class="mb-4" @click:close="errorMessage = ''">
             {{ errorMessage }}
           </v-alert>
+
+          <v-alert v-if="profileSuccess" type="success" variant="tonal" closable class="mb-4" @click:close="profileSuccess = ''">
+            {{ profileSuccess }}
+          </v-alert>
+
+          <div class="admin-hero">
+            <div>
+              <p class="admin-kicker">{{ isOperator ? 'Betreiber' : 'Firma' }}</p>
+              <h1>{{ isOperator ? 'Admin Hub' : 'Panel Admin' }}</h1>
+              <span>{{ isOperator ? 'Uebersicht ueber alle Kundenpanels.' : 'Verwaltung fuer dein Firmenpanel.' }}</span>
+            </div>
+            <div class="admin-overview">
+              <div class="admin-overview__item">
+                <span>Panels</span>
+                <strong>{{ clients.length }}</strong>
+              </div>
+              <div class="admin-overview__item">
+                <span>Benutzer</span>
+                <strong>{{ users.length }}</strong>
+              </div>
+              <div class="admin-overview__item">
+                <span>Einladungen</span>
+                <strong>{{ invites.length }}</strong>
+              </div>
+              <div class="admin-overview__item">
+                <span>Rolle</span>
+                <strong>{{ isOperator ? 'Betreiber' : 'Firmen-Admin' }}</strong>
+              </div>
+            </div>
+          </div>
 
           <v-alert v-if="panelSettingsSuccess" type="success" variant="tonal" closable class="mb-4" @click:close="panelSettingsSuccess = ''">
             {{ panelSettingsSuccess }}
@@ -138,13 +146,19 @@
                       <v-chip size="x-small" :color="verificationColor(client.verification_status)" variant="tonal">
                         {{ verificationLabel(client.verification_status) }}
                       </v-chip>
+                      <v-chip v-if="client.debug_enabled" size="x-small" color="warning" variant="tonal">
+                        Debug
+                      </v-chip>
+                      <v-chip v-if="client.health === 'database_error'" size="x-small" color="error" variant="tonal">
+                        DB Fehler
+                      </v-chip>
                     </div>
                   </div>
                   <p class="company-number">{{ companyNumber(client) }}</p>
                   <h3>{{ client.name }}</h3>
                   <div class="company-card__meta">
                     <span>{{ client.assigned_users || 0 }} Benutzer</span>
-                    <span>{{ client.master_data_locked ? 'Stammdaten gesperrt' : 'Stammdaten offen' }}</span>
+                    <span>{{ client.smtp_configured ? 'SMTP bereit' : 'SMTP offen' }}</span>
                   </div>
                 </v-card-text>
               </v-card>
@@ -183,6 +197,10 @@
                 <div class="panel-status">
                   <span>Firmendaten</span>
                   <strong>{{ selectedClient.master_data_locked ? 'Gesperrt' : 'Bearbeitbar' }}</strong>
+                </div>
+                <div class="panel-status">
+                  <span>Debug</span>
+                  <strong>{{ selectedClient.debug_enabled ? 'Aktiv' : 'Aus' }}</strong>
                 </div>
               </div>
 
@@ -237,6 +255,13 @@
                     color="primary"
                     inset
                     label="Firmendaten sperren"
+                    hide-details
+                  />
+                  <v-switch
+                    v-model="panelDebugEnabled"
+                    color="warning"
+                    inset
+                    label="Debug-Modus fuer dieses Panel"
                     hide-details
                   />
                 </div>
@@ -300,6 +325,125 @@
           </div>
         </main>
       </section>
+
+      <v-navigation-drawer
+        v-model="showSettingsDrawer"
+        location="right"
+        temporary
+        width="430"
+        class="settings-drawer"
+      >
+        <div class="settings-drawer__head">
+          <div>
+            <p class="admin-kicker">Admin Hub</p>
+            <h2>Einstellungen</h2>
+          </div>
+          <v-btn icon="mdi-close" variant="text" title="Schliessen" @click="showSettingsDrawer = false" />
+        </div>
+
+        <section class="settings-block">
+          <h3>Meine Daten</h3>
+          <v-text-field
+            v-model="profileName"
+            label="Name"
+            variant="outlined"
+            density="comfortable"
+            class="mb-3"
+          />
+          <v-text-field
+            v-model="profileEmail"
+            label="E-Mail"
+            type="email"
+            variant="outlined"
+            density="comfortable"
+            class="mb-3"
+          />
+          <v-select
+            v-model="profileThemeMode"
+            :items="profileThemeOptions"
+            label="Darstellung"
+            variant="outlined"
+            density="comfortable"
+            class="mb-3"
+          />
+          <v-switch
+            v-model="profileAdminDebug"
+            color="warning"
+            inset
+            label="Admin-Debug in der Browser-Konsole"
+            hide-details
+            class="mb-4"
+          />
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="profileSaving"
+            @click="saveAdminProfile"
+          >
+            <v-icon start>mdi-content-save</v-icon>
+            Speichern
+          </v-btn>
+        </section>
+
+        <v-divider />
+
+        <section class="settings-block">
+          <h3>Werkzeuge</h3>
+          <div class="settings-actions">
+            <v-btn variant="tonal" color="primary" prepend-icon="mdi-web" @click="openLogs('web')">
+              Web-Logs
+            </v-btn>
+            <v-btn variant="tonal" color="primary" prepend-icon="mdi-database-search" @click="openLogs('database')">
+              Datenbank-Logs
+            </v-btn>
+          </div>
+          <v-alert type="info" variant="tonal" class="mt-4">
+            SMTP wird pro Panel hinterlegt. Wenn SMTP fehlt, wird der Zugang angelegt und die Zugangsdaten bleiben hier zum Kopieren sichtbar.
+          </v-alert>
+        </section>
+      </v-navigation-drawer>
+
+      <v-dialog v-model="showLogsDialog" max-width="980">
+        <v-card class="log-dialog">
+          <v-card-title class="log-dialog__title">
+            <div>
+              <p class="admin-kicker">Reparatur</p>
+              <span>Logs</span>
+            </div>
+            <v-btn icon="mdi-close" variant="text" title="Schliessen" @click="showLogsDialog = false" />
+          </v-card-title>
+          <v-card-text>
+            <div class="log-toolbar">
+              <v-btn
+                :variant="logsChannel === 'web' ? 'flat' : 'tonal'"
+                color="primary"
+                prepend-icon="mdi-web"
+                :loading="logsLoading && logsChannel === 'web'"
+                @click="loadLogs('web')"
+              >
+                Webseite
+              </v-btn>
+              <v-btn
+                :variant="logsChannel === 'database' ? 'flat' : 'tonal'"
+                color="primary"
+                prepend-icon="mdi-database-search"
+                :loading="logsLoading && logsChannel === 'database'"
+                @click="loadLogs('database')"
+              >
+                Datenbank
+              </v-btn>
+            </div>
+            <v-alert v-if="logsMessage" :type="logsAvailable ? 'success' : 'info'" variant="tonal" class="my-4">
+              {{ logsMessage }}
+              <template v-if="logsCommand">
+                <br>
+                <code>{{ logsCommand }}</code>
+              </template>
+            </v-alert>
+            <pre class="admin-log-output">{{ logsContent || 'Noch keine Logzeilen geladen.' }}</pre>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
 
       <v-dialog v-model="showCreateCompanyDialog" max-width="560" persistent>
         <v-card>
@@ -431,6 +575,28 @@
               inset
               label="Bei bestehendem Benutzer neues Startpasswort setzen"
               hide-details
+              class="mb-2"
+            />
+            <v-switch
+              v-model="inviteGeneratePassword"
+              color="primary"
+              inset
+              label="Startpasswort automatisch generieren"
+              hide-details
+              class="mb-2"
+            />
+            <v-text-field
+              v-if="!inviteGeneratePassword"
+              v-model="invitePassword"
+              label="Startpasswort"
+              :type="invitePasswordVisible ? 'text' : 'password'"
+              variant="outlined"
+              density="comfortable"
+              :append-inner-icon="invitePasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+              hint="Mindestens 10 Zeichen."
+              persistent-hint
+              :error-messages="invitePasswordError"
+              @click:append-inner="invitePasswordVisible = !invitePasswordVisible"
             />
           </v-card-text>
           <v-card-actions>
@@ -456,22 +622,42 @@
 <script setup>
 import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
+import { useTheme } from 'vuetify'
 import { oserpStore } from '@/core/stores/oserp.store.js'
 import { AuthStatus } from '@/core/constants/auth.js'
 import { MOTORDESK_FALLBACK_LOGO } from '@/core/branding.js'
+import { motordeskThemeNames, normalizeThemeMode } from '@/core/theme/motordesk.tokens.js'
 
 const oserp = oserpStore()
 const fallbackLogo = MOTORDESK_FALLBACK_LOGO
+const vuetifyTheme = useTheme()
 
 const loading = ref(true)
 const errorMessage = ref('')
 const panelSettingsSuccess = ref('')
+const profileSuccess = ref('')
 const clients = ref([])
 const users = ref([])
 const invites = ref([])
 const adminContext = ref({})
+const adminProfile = ref({})
 const selectedClientId = ref(null)
 const inviteResult = ref(null)
+
+const showSettingsDrawer = ref(false)
+const profileName = ref('')
+const profileEmail = ref('')
+const profileThemeMode = ref('light')
+const profileAdminDebug = ref(false)
+const profileSaving = ref(false)
+
+const showLogsDialog = ref(false)
+const logsLoading = ref(false)
+const logsChannel = ref('web')
+const logsContent = ref('')
+const logsMessage = ref('')
+const logsCommand = ref('')
+const logsAvailable = ref(false)
 
 const showCreateCompanyDialog = ref(false)
 const createCompanyNameRef = ref(null)
@@ -491,6 +677,9 @@ const inviteLogin = ref('')
 const inviteRole = ref('company_user')
 const inviteSendEmail = ref(true)
 const inviteResetPassword = ref(true)
+const inviteGeneratePassword = ref(true)
+const invitePassword = ref('')
+const invitePasswordVisible = ref(false)
 const inviteLoading = ref(false)
 const inviteError = ref('')
 
@@ -498,6 +687,7 @@ const panelCompanyNumber = ref('')
 const panelVerificationStatus = ref('pending')
 const panelSetupStatus = ref('needs_review')
 const panelMasterDataLocked = ref(true)
+const panelDebugEnabled = ref(false)
 const panelSettingsLoading = ref(false)
 
 const skrOptions = [
@@ -523,6 +713,12 @@ const roleOptions = [
   { title: 'Setup-Mitarbeiter', value: 'setup_agent' },
 ]
 
+const profileThemeOptions = [
+  { title: 'Hell', value: 'light' },
+  { title: 'Dunkel', value: 'dark' },
+  { title: 'System', value: 'system' },
+]
+
 const tools = [
   { title: 'Firmenkonfiguration', icon: 'mdi-domain-cog', href: '/system/mandantenkonfiguration' },
   { title: 'Benutzer', icon: 'mdi-account-cog', href: '/benutzer/konfiguration' },
@@ -546,8 +742,17 @@ const canManageUsers = computed(() => !!adminContext.value.can_manage_users)
 const canEditPanelSettings = computed(() => !!adminContext.value.can_edit_panel_settings)
 const selectedClient = computed(() => clients.value.find(client => client.code === selectedClientId.value) || clients.value[0] || null)
 const canSubmitCompany = computed(() => createCompanyName.value.trim() !== '' && createCompanyDbName.value.trim() !== '')
-const canSubmitInvite = computed(() => !!inviteClientId.value && inviteEmail.value.trim() !== '')
+const invitePasswordError = computed(() => {
+  if (inviteGeneratePassword.value || !invitePassword.value.trim()) return ''
+  return invitePassword.value.trim().length >= 10 ? '' : 'Mindestens 10 Zeichen.'
+})
+const canSubmitInvite = computed(() => {
+  if (!inviteClientId.value || inviteEmail.value.trim() === '') return false
+  if (!inviteGeneratePassword.value && invitePassword.value.trim().length < 10) return false
+  return true
+})
 const availableRoleOptions = computed(() => isOperator.value ? roleOptions : roleOptions.filter(role => role.value === 'company_user'))
+const isAdminDebugEnabled = computed(() => !!adminProfile.value.admin_debug || profileAdminDebug.value)
 const sessionLabel = computed(() => {
   if (!oserp.session.user) return 'Nicht angemeldet'
   const panel = activeCompanyNumber.value ? `${activeCompanyNumber.value} - ${activeClientName.value}` : activeClientName.value
@@ -575,8 +780,30 @@ async function boot() {
   }
 }
 
+function resolveAdminTheme(mode) {
+  const normalized = normalizeThemeMode(mode, 'light')
+  if (normalized === 'system') {
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return normalized
+}
+
+function applyAdminTheme(mode) {
+  const resolved = resolveAdminTheme(mode)
+  vuetifyTheme.global.name.value = resolved === 'dark' ? motordeskThemeNames.dark : motordeskThemeNames.light
+  document.documentElement.dataset.adminTheme = resolved
+}
+
+function adminDebug(...message) {
+  if (isAdminDebugEnabled.value) {
+    console.debug('[MotorDesk Admin]', ...message)
+  }
+}
+
 async function adminPost(payload) {
+  adminDebug('request', payload)
   const { data } = await axios.post('/api/admin/', payload)
+  adminDebug('response', data)
   if (!data.success) {
     throw new Error(adminErrorMessage(data))
   }
@@ -585,14 +812,14 @@ async function adminPost(payload) {
 
 function adminErrorMessage(data) {
   const firstError = data?.payload?.errors?.[0]
-  if (firstError) return firstError
+  if (firstError) return normalizeErrorValue(firstError, 'ADMIN_API_ERROR')
 
   const firstClientError = data?.payload?.clients
     ?.flatMap(client => client?.update?.errors || [])
     ?.find(Boolean)
-  if (firstClientError) return firstClientError
+  if (firstClientError) return normalizeErrorValue(firstClientError, 'ADMIN_API_ERROR')
 
-  return data?.debug || data?.text || 'ADMIN_API_ERROR'
+  return normalizeErrorValue(data?.debug || data?.payload || data?.text, 'ADMIN_API_ERROR')
 }
 
 async function reloadAdminOverview() {
@@ -602,6 +829,9 @@ async function reloadAdminOverview() {
   users.value = overview.users || []
   invites.value = overview.invites || []
   adminContext.value = overview.context || {}
+  adminProfile.value = overview.profile || {}
+  syncProfileForm(adminProfile.value)
+  applyAdminTheme(profileThemeMode.value)
 
   if (!selectedClientId.value || !clients.value.some(client => client.code === selectedClientId.value)) {
     selectedClientId.value = clients.value[0]?.code || null
@@ -622,6 +852,72 @@ function syncPanelForm(client) {
   panelVerificationStatus.value = client.verification_status || 'pending'
   panelSetupStatus.value = client.setup_status || 'needs_review'
   panelMasterDataLocked.value = client.master_data_locked !== false
+  panelDebugEnabled.value = !!client.debug_enabled
+}
+
+function syncProfileForm(profile) {
+  profileName.value = profile?.name || profile?.login || ''
+  profileEmail.value = profile?.email || ''
+  profileThemeMode.value = normalizeThemeMode(profile?.theme_mode, 'light')
+  profileAdminDebug.value = !!profile?.admin_debug
+}
+
+function openSettingsDrawer() {
+  syncProfileForm(adminProfile.value)
+  profileSuccess.value = ''
+  showSettingsDrawer.value = true
+}
+
+async function saveAdminProfile() {
+  profileSaving.value = true
+  errorMessage.value = ''
+  profileSuccess.value = ''
+  try {
+    const payload = await adminPost({
+      action: 'updateAdminProfile',
+      name: profileName.value.trim(),
+      email: profileEmail.value.trim(),
+      theme_mode: profileThemeMode.value,
+      admin_debug: profileAdminDebug.value,
+    })
+    adminProfile.value = payload.profile || {}
+    syncProfileForm(adminProfile.value)
+    applyAdminTheme(profileThemeMode.value)
+    profileSuccess.value = 'Admin-Einstellungen gespeichert.'
+  } catch (error) {
+    errorMessage.value = readError(error, 'Admin-Einstellungen konnten nicht gespeichert werden.')
+  } finally {
+    profileSaving.value = false
+  }
+}
+
+function openLogs(channel = 'web') {
+  showLogsDialog.value = true
+  loadLogs(channel)
+}
+
+async function loadLogs(channel = logsChannel.value) {
+  logsChannel.value = channel
+  logsLoading.value = true
+  logsContent.value = ''
+  logsMessage.value = ''
+  logsCommand.value = ''
+  logsAvailable.value = false
+  try {
+    const payload = await adminPost({
+      action: 'getAdminLogs',
+      channel,
+      client_id: selectedClient.value?.code || adminContext.value.current_client_id,
+    })
+    logsContent.value = payload.content || ''
+    logsMessage.value = payload.message || ''
+    logsCommand.value = payload.command || ''
+    logsAvailable.value = !!payload.available
+  } catch (error) {
+    logsMessage.value = readError(error, 'Logs konnten nicht geladen werden.')
+  } finally {
+    logsLoading.value = false
+  }
 }
 
 async function switchClient(client) {
@@ -708,6 +1004,9 @@ function openInviteDialog(client = null) {
   inviteRole.value = availableRoleOptions.value[0]?.value || 'company_user'
   inviteSendEmail.value = true
   inviteResetPassword.value = true
+  inviteGeneratePassword.value = true
+  invitePassword.value = ''
+  invitePasswordVisible.value = false
   inviteError.value = ''
   showInviteDialog.value = true
   nextTick(() => inviteEmailRef.value?.focus())
@@ -716,6 +1015,7 @@ function openInviteDialog(client = null) {
 function closeInviteDialog() {
   showInviteDialog.value = false
   inviteError.value = ''
+  invitePassword.value = ''
 }
 
 async function doCreateInvite() {
@@ -733,6 +1033,7 @@ async function doCreateInvite() {
       role: inviteRole.value,
       send_email: inviteSendEmail.value,
       reset_password: inviteResetPassword.value,
+      password: inviteGeneratePassword.value ? '' : invitePassword.value.trim(),
     })
     inviteResult.value = payload
     closeInviteDialog()
@@ -757,6 +1058,7 @@ async function savePanelSettings() {
       verification_status: panelVerificationStatus.value,
       setup_status: panelSetupStatus.value,
       master_data_locked: panelMasterDataLocked.value,
+      debug_enabled: panelDebugEnabled.value,
     })
     const updated = payload.client
     clients.value = clients.value.map(client => client.code === updated.code ? { ...client, ...updated } : client)
@@ -833,8 +1135,21 @@ function roleIcon(role) {
   }[role] || 'mdi-account'
 }
 
+function normalizeErrorValue(value, fallback) {
+  if (!value) return fallback
+  if (typeof value === 'string') return value
+  if (Array.isArray(value)) return value.map(item => normalizeErrorValue(item, '')).filter(Boolean).join('\n') || fallback
+  if (typeof value === 'object') {
+    return value.message || value.error || value.text || value.code || JSON.stringify(value)
+  }
+  return String(value)
+}
+
 function readError(error, fallback) {
-  return error?.response?.data?.debug || error?.response?.data?.payload || error?.response?.data?.text || error?.message || error?.code || fallback
+  return normalizeErrorValue(
+    error?.response?.data?.debug || error?.response?.data?.payload || error?.response?.data?.text || error?.message || error?.code,
+    fallback
+  )
 }
 </script>
 
@@ -892,13 +1207,9 @@ function readError(error, fallback) {
 }
 
 .admin-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 24px;
   padding: 24px;
 }
 
-.admin-side,
 .admin-content,
 .panel-detail {
   background: var(--md-color-surface);
@@ -906,15 +1217,10 @@ function readError(error, fallback) {
   border-radius: 8px;
 }
 
-.admin-side {
-  align-self: start;
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-}
-
-.admin-side h1,
+.admin-hero h1,
 .admin-section-head h2,
+.settings-drawer h2,
+.settings-drawer h3,
 .panel-detail h2,
 .operator-panel h3,
 .company-card h3 {
@@ -931,7 +1237,32 @@ function readError(error, fallback) {
   letter-spacing: 0;
 }
 
-.admin-stat,
+.admin-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--md-color-line);
+}
+
+.admin-hero h1 {
+  font-size: 1.9rem;
+}
+
+.admin-hero span {
+  color: var(--md-color-muted);
+}
+
+.admin-overview {
+  min-width: min(520px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.admin-overview__item,
 .panel-status,
 .operator-panel {
   padding: 12px;
@@ -940,12 +1271,12 @@ function readError(error, fallback) {
   border-radius: 8px;
 }
 
-.admin-stat {
+.admin-overview__item {
   display: grid;
   gap: 4px;
 }
 
-.admin-stat span,
+.admin-overview__item span,
 .company-card p,
 .editor-card span,
 .invite-row span,
@@ -955,13 +1286,65 @@ function readError(error, fallback) {
   font-size: 0.82rem;
 }
 
-.admin-stat strong,
+.admin-overview__item strong,
 .panel-status strong {
   overflow-wrap: anywhere;
 }
 
 .admin-content {
   padding: 20px;
+}
+
+.settings-drawer {
+  background: var(--md-color-surface) !important;
+  color: var(--md-color-ink);
+}
+
+.settings-drawer__head,
+.log-dialog__title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--md-color-line);
+}
+
+.settings-block {
+  padding: 20px;
+}
+
+.settings-block h3 {
+  margin-bottom: 14px;
+}
+
+.settings-actions,
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.log-dialog {
+  background: var(--md-color-surface);
+  color: var(--md-color-ink);
+}
+
+.admin-log-output {
+  min-height: 360px;
+  max-height: 56vh;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  background: var(--md-color-canvas);
+  border: 1px solid var(--md-color-line);
+  border-radius: 8px;
+  color: var(--md-color-ink);
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
 .admin-section-head,
@@ -1131,6 +1514,7 @@ function readError(error, fallback) {
 
 @media (max-width: 860px) {
   .admin-topbar,
+  .admin-hero,
   .admin-section-head,
   .panel-detail__head {
     align-items: flex-start;
@@ -1138,8 +1522,13 @@ function readError(error, fallback) {
   }
 
   .admin-layout {
-    grid-template-columns: 1fr;
     padding: 16px;
+  }
+
+  .admin-overview {
+    min-width: 0;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-topbar__actions,
