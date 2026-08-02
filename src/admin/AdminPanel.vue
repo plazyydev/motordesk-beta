@@ -35,6 +35,124 @@
             {{ profileSuccess }}
           </v-alert>
 
+          <section v-if="operatorSetupRequired" class="operator-setup-page">
+            <div class="operator-setup-page__intro">
+              <p class="admin-kicker">Ersteinrichtung</p>
+              <h1>MotorDesk Betreiber einrichten</h1>
+              <span>
+                Diese Seite erscheint nur, solange die Betreiber-Einrichtung in der Auth-Datenbank noch nicht abgeschlossen ist.
+              </span>
+            </div>
+
+            <v-form class="operator-setup-form" @submit.prevent="completeOperatorSetup">
+              <div class="operator-setup-grid">
+                <section class="operator-setup-card">
+                  <h2>Hauptbenutzer</h2>
+                  <v-text-field
+                    v-model="setupName"
+                    label="Name"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <v-text-field
+                    v-model="setupEmail"
+                    label="E-Mail"
+                    type="email"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <v-select
+                    v-model="setupThemeMode"
+                    :items="profileThemeOptions"
+                    label="Darstellung"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <v-switch
+                    v-model="setupAdminDebug"
+                    color="warning"
+                    inset
+                    label="Admin-Debug direkt aktivieren"
+                    hide-details
+                  />
+                </section>
+
+                <section class="operator-setup-card">
+                  <h2>E-Mail Versand</h2>
+                  <v-text-field
+                    v-model="setupSmtpFromEmail"
+                    label="Absender-E-Mail"
+                    type="email"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <v-text-field
+                    v-model="setupSmtpHost"
+                    label="SMTP-Host optional"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <div class="operator-setup-inline">
+                    <v-text-field
+                      v-model="setupSmtpPort"
+                      label="Port"
+                      type="number"
+                      variant="outlined"
+                      density="comfortable"
+                    />
+                    <v-select
+                      v-model="setupSmtpEncryption"
+                      :items="smtpEncryptionOptions"
+                      label="Verschluesselung"
+                      variant="outlined"
+                      density="comfortable"
+                    />
+                  </div>
+                  <v-text-field
+                    v-model="setupSmtpUsername"
+                    label="SMTP-Benutzer"
+                    variant="outlined"
+                    density="comfortable"
+                    class="mb-3"
+                  />
+                  <v-text-field
+                    v-model="setupSmtpPassword"
+                    label="SMTP-Passwort"
+                    type="password"
+                    variant="outlined"
+                    density="comfortable"
+                    hint="Kann leer bleiben und spaeter gesetzt werden."
+                    persistent-hint
+                  />
+                </section>
+              </div>
+
+              <v-alert type="info" variant="tonal" class="mt-4">
+                Der Status wird persistent in der Auth-Datenbank gespeichert. Ein normaler Pull oder Docker-Build zeigt diese Seite danach nicht erneut an.
+              </v-alert>
+
+              <div class="operator-setup-actions">
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  size="large"
+                  type="submit"
+                  :loading="operatorSetupLoading"
+                  :disabled="!canCompleteOperatorSetup"
+                >
+                  <v-icon start>mdi-check-circle</v-icon>
+                  Speichern und Admin Hub aktivieren
+                </v-btn>
+              </div>
+            </v-form>
+          </section>
+
+          <template v-else>
           <div class="admin-hero">
             <div>
               <p class="admin-kicker">{{ isOperator ? 'Betreiber' : 'Firma' }}</p>
@@ -323,6 +441,7 @@
               </div>
             </div>
           </div>
+          </template>
         </main>
       </section>
 
@@ -641,8 +760,21 @@ const users = ref([])
 const invites = ref([])
 const adminContext = ref({})
 const adminProfile = ref({})
+const operatorSetup = ref({ required: false })
 const selectedClientId = ref(null)
 const inviteResult = ref(null)
+
+const operatorSetupLoading = ref(false)
+const setupName = ref('')
+const setupEmail = ref('')
+const setupThemeMode = ref('light')
+const setupAdminDebug = ref(false)
+const setupSmtpFromEmail = ref('')
+const setupSmtpHost = ref('')
+const setupSmtpPort = ref('587')
+const setupSmtpEncryption = ref('tls')
+const setupSmtpUsername = ref('')
+const setupSmtpPassword = ref('')
 
 const showSettingsDrawer = ref(false)
 const profileName = ref('')
@@ -719,6 +851,12 @@ const profileThemeOptions = [
   { title: 'System', value: 'system' },
 ]
 
+const smtpEncryptionOptions = [
+  { title: 'TLS', value: 'tls' },
+  { title: 'SSL', value: 'ssl' },
+  { title: 'Keine', value: 'none' },
+]
+
 const tools = [
   { title: 'Firmenkonfiguration', icon: 'mdi-domain-cog', href: '/system/mandantenkonfiguration' },
   { title: 'Benutzer', icon: 'mdi-account-cog', href: '/benutzer/konfiguration' },
@@ -740,8 +878,13 @@ const isOperator = computed(() => !!adminContext.value.is_operator)
 const canCreateCompany = computed(() => !!adminContext.value.can_create_company || !!oserp.session.can_create_company)
 const canManageUsers = computed(() => !!adminContext.value.can_manage_users)
 const canEditPanelSettings = computed(() => !!adminContext.value.can_edit_panel_settings)
+const operatorSetupRequired = computed(() => isOperator.value && !!operatorSetup.value.required)
 const selectedClient = computed(() => clients.value.find(client => client.code === selectedClientId.value) || clients.value[0] || null)
 const canSubmitCompany = computed(() => createCompanyName.value.trim() !== '' && createCompanyDbName.value.trim() !== '')
+const canCompleteOperatorSetup = computed(() => {
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(setupEmail.value.trim())
+  return setupName.value.trim() !== '' && emailOk
+})
 const invitePasswordError = computed(() => {
   if (inviteGeneratePassword.value || !invitePassword.value.trim()) return ''
   return invitePassword.value.trim().length >= 10 ? '' : 'Mindestens 10 Zeichen.'
@@ -830,7 +973,9 @@ async function reloadAdminOverview() {
   invites.value = overview.invites || []
   adminContext.value = overview.context || {}
   adminProfile.value = overview.profile || {}
+  operatorSetup.value = overview.operator_setup || { required: false }
   syncProfileForm(adminProfile.value)
+  syncOperatorSetupForm(adminProfile.value, operatorSetup.value)
   applyAdminTheme(profileThemeMode.value)
 
   if (!selectedClientId.value || !clients.value.some(client => client.code === selectedClientId.value)) {
@@ -860,6 +1005,53 @@ function syncProfileForm(profile) {
   profileEmail.value = profile?.email || ''
   profileThemeMode.value = normalizeThemeMode(profile?.theme_mode, 'light')
   profileAdminDebug.value = !!profile?.admin_debug
+}
+
+function syncOperatorSetupForm(profile, setup) {
+  setupName.value = profile?.name || profile?.login || ''
+  setupEmail.value = profile?.email || ''
+  setupThemeMode.value = normalizeThemeMode(profile?.theme_mode, 'light')
+  setupAdminDebug.value = !!profile?.admin_debug
+  setupSmtpFromEmail.value = setup?.smtp?.from_email || profile?.email || ''
+  setupSmtpHost.value = setup?.smtp?.host || ''
+  setupSmtpPort.value = setup?.smtp?.port || '587'
+  setupSmtpEncryption.value = setup?.smtp?.encryption || 'tls'
+  setupSmtpUsername.value = setup?.smtp?.username || ''
+  setupSmtpPassword.value = ''
+}
+
+async function completeOperatorSetup() {
+  if (!canCompleteOperatorSetup.value) return
+
+  operatorSetupLoading.value = true
+  errorMessage.value = ''
+  profileSuccess.value = ''
+  try {
+    const payload = await adminPost({
+      action: 'completeOperatorSetup',
+      name: setupName.value.trim(),
+      email: setupEmail.value.trim(),
+      theme_mode: setupThemeMode.value,
+      admin_debug: setupAdminDebug.value,
+      smtp: {
+        from_email: setupSmtpFromEmail.value.trim() || setupEmail.value.trim(),
+        host: setupSmtpHost.value.trim(),
+        port: setupSmtpPort.value.trim() || '587',
+        encryption: setupSmtpEncryption.value,
+        username: setupSmtpUsername.value.trim(),
+        password: setupSmtpPassword.value.trim(),
+      },
+    })
+    adminProfile.value = payload.profile || {}
+    operatorSetup.value = payload.operator_setup || { required: false, complete: true }
+    syncProfileForm(adminProfile.value)
+    applyAdminTheme(profileThemeMode.value)
+    profileSuccess.value = 'Ersteinrichtung abgeschlossen. Admin Hub ist aktiv.'
+  } catch (error) {
+    errorMessage.value = readError(error, 'Ersteinrichtung konnte nicht abgeschlossen werden.')
+  } finally {
+    operatorSetupLoading.value = false
+  }
 }
 
 function openSettingsDrawer() {
@@ -1295,6 +1487,62 @@ function readError(error, fallback) {
   padding: 20px;
 }
 
+.operator-setup-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.operator-setup-page__intro {
+  max-width: 760px;
+  margin-bottom: 22px;
+}
+
+.operator-setup-page__intro h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  letter-spacing: 0;
+}
+
+.operator-setup-page__intro span {
+  color: var(--md-color-muted);
+}
+
+.operator-setup-form {
+  display: grid;
+  gap: 16px;
+}
+
+.operator-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.operator-setup-card {
+  padding: 18px;
+  background: var(--md-color-canvas);
+  border: 1px solid var(--md-color-line);
+  border-radius: 8px;
+}
+
+.operator-setup-card h2 {
+  margin: 0 0 16px;
+  font-size: 1.12rem;
+  letter-spacing: 0;
+}
+
+.operator-setup-inline {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.5fr) minmax(180px, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.operator-setup-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .settings-drawer {
   background: var(--md-color-surface) !important;
   color: var(--md-color-ink);
@@ -1529,6 +1777,11 @@ function readError(error, fallback) {
     min-width: 0;
     width: 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .operator-setup-grid,
+  .operator-setup-inline {
+    grid-template-columns: 1fr;
   }
 
   .admin-topbar__actions,
