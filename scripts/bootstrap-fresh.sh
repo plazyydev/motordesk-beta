@@ -55,8 +55,38 @@ if ! command -v sha256sum >/dev/null 2>&1; then
     exit 1
 fi
 
+detect_compose_project() {
+    local explicit_project="${MOTORDESK_COMPOSE_PROJECT:-}"
+    local detected_project
+    local db_container="${STACK_NAME}-db"
+
+    if [[ -n "$explicit_project" ]]; then
+        printf '%s\n' "$explicit_project"
+        return
+    fi
+
+    detected_project="$(
+        docker inspect \
+            -f '{{ index .Config.Labels "com.docker.compose.project" }}' \
+            "$db_container" 2>/dev/null || true
+    )"
+
+    if [[ -n "$detected_project" && "$detected_project" != "<no value>" ]]; then
+        printf '%s\n' "$detected_project"
+        return
+    fi
+
+    printf '%s\n' "$STACK_NAME"
+}
+
+COMPOSE_PROJECT="$(detect_compose_project)"
+
+if [[ "$COMPOSE_PROJECT" != "$STACK_NAME" ]]; then
+    warn "Nutze vorhandenes Docker-Compose-Projekt '$COMPOSE_PROJECT' fuer Container ${STACK_NAME}-db."
+fi
+
 dc() {
-    docker compose -p "$STACK_NAME" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"
+    docker compose -p "$COMPOSE_PROJECT" -f "$COMPOSE_FILE" --env-file "$ENV_FILE" "$@"
 }
 
 psql_db() {
