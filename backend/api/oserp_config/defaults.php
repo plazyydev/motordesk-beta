@@ -1,4 +1,79 @@
 <?php
+function mdConfigProtectedDefaultKeys(): array {
+    return [
+        'company',
+        'address_street1',
+        'address_street2',
+        'address_zipcode',
+        'address_city',
+        'address_country',
+        'co_ustid',
+        'sepa_creditor_id',
+        'businessnumber',
+        'duns',
+        'signature',
+    ];
+}
+
+function mdConfigProtectedClientDefaultKeys(): array {
+    return [
+        'company_logo',
+        'company_logo_file_id',
+    ];
+}
+
+function mdConfigCurrentClientLockState(ApiSession $auth): array {
+    mdAuthEnsureClientMetadata($auth);
+    $client = $auth->getOne(
+        'SELECT master_data_locked, verification_status
+         FROM auth.clients
+         WHERE id = :client_id',
+        [':client_id' => intval($auth->getClientId())]
+    );
+
+    return [
+        'locked' => !empty($client['master_data_locked']),
+        'verification_status' => $client['verification_status'] ?? 'pending',
+        'operator' => canUserCreateCompany($auth->getLogin()),
+    ];
+}
+
+function mdConfigProtectedDefaultsChanged(ApiDatabase $db, array $incoming): array {
+    $keys = array_values(array_intersect(array_keys($incoming), mdConfigProtectedDefaultKeys()));
+    if (!$keys) {
+        return [];
+    }
+
+    $current = $db->getOne('SELECT ' . implode(', ', $keys) . ' FROM defaults LIMIT 1') ?: [];
+    $changed = [];
+    foreach ($keys as $key) {
+        $old = $current[$key] ?? null;
+        $new = $incoming[$key] ?? null;
+        $oldNormalized = $old === null ? '' : (string)$old;
+        $newNormalized = $new === null ? '' : (string)$new;
+        if ($oldNormalized !== $newNormalized) {
+            $changed[] = $key;
+        }
+    }
+    return $changed;
+}
+
+function mdConfigRejectLockedCompanyMasterChanges(ApiSession $auth, ApiDatabase $db, array $defaults, array $crmData): ?string {
+    $state = mdConfigCurrentClientLockState($auth);
+    if ($state['operator'] || !$state['locked']) {
+        return null;
+    }
+
+    $changedDefaults = mdConfigProtectedDefaultsChanged($db, $defaults);
+    $changedClientDefaults = array_values(array_intersect(array_keys($crmData), mdConfigProtectedClientDefaultKeys()));
+    $changed = array_merge($changedDefaults, $changedClientDefaults);
+
+    if (!$changed) {
+        return null;
+    }
+
+    return 'Firmendaten sind fuer dieses Panel gesperrt. Bitte Aenderungen mit Gewerbenachweis an MotorDesk geben. Gesperrte Felder: ' . implode(', ', $changed);
+}
 /**
  * Lädt die komplette Company-Config ohne Session-Reload und CV-Daten.
  * Wird nach Config-Mutationen aufgerufen statt restoreSession().
@@ -234,8 +309,15 @@ function saveDefaults($data) {
         // Hole die CRM-Daten aus dem 'crmData' Key
         $crmData = $data['crmData'] ?? [];
 
-        // Verbindung zur Firmendatenbank
+        $auth = DbhAuth::begin();
+        $auth->fetchSessionData();
         $db = DbhCompany::begin();
+
+        $lockMessage = mdConfigRejectLockedCompanyMasterChanges($auth, $db, $defaults, $crmData);
+        if ($lockMessage !== null) {
+            resultInfo(false, 'COMPANY_MASTER_DATA_LOCKED', $lockMessage);
+            return;
+        }
 
         // Faktura-Nummernkreise: Dürfen nie auf einen kleineren Wert zurückgesetzt werden,
         // da sie gesetzlich fortlaufend sein müssen und nicht manuell änderbar sind.
@@ -347,7 +429,20 @@ function saveClientDefault($data) {
         return;
     }
 
+    $auth = DbhAuth::begin();
+    $auth->fetchSessionData();
     $db = DbhCompany::begin();
+
+    $lockMessage = mdConfigRejectLockedCompanyMasterChanges(
+        $auth,
+        $db,
+        [],
+        in_array($key, mdConfigProtectedClientDefaultKeys(), true) ? [$key => $value] : []
+    );
+    if ($lockMessage !== null) {
+        resultInfo(false, 'COMPANY_MASTER_DATA_LOCKED', $lockMessage);
+        return;
+    }
 
     if ($value === null || $value === '') {
         $db->execute("DELETE FROM defaults_oserp WHERE key = :key", [':key' => $key]);

@@ -50,6 +50,7 @@ export const oserpStore = defineStore('oserpStore', () => {
     const session = reactive({
         user: '',
         client: '',
+        company_number: '',
         auth_user_data: null,
         auth_groups: [],
         permissions: [],
@@ -200,6 +201,7 @@ export const oserpStore = defineStore('oserpStore', () => {
     function transformResponseToStoreData(responseData) {
         session.user = responseData.payload.login;
         session.client = responseData.payload.client;
+        session.company_number = responseData.payload.company_number || '';
         session.auth_user_data = responseData.payload.auth_user_data;
         session.auth_groups = responseData.payload.auth_groups || [];
         session.permissions = responseData.payload.permissions;
@@ -303,12 +305,13 @@ export const oserpStore = defineStore('oserpStore', () => {
     /**
      * Neue Firma anlegen
      */
-    async function createCompany(companyName, dbName, skr) {
+    async function createCompany(companyName, dbName, skr, companyNumber = '') {
         const response = await axios.post('/api/company/', {
             action: 'createCompany',
             companyName,
             dbName,
-            skr
+            skr,
+            companyNumber
         });
 
         if (response.data.success) {
@@ -334,6 +337,7 @@ export const oserpStore = defineStore('oserpStore', () => {
         if (response.data.success) {
             session.user = '';
             session.client = '';
+            session.company_number = '';
         } else {
             throw new ApiError('ApiError', response.data.text);
         }

@@ -28,7 +28,7 @@
                 @focus="clearError" @keydown="clearError" @keyup.enter="login"
               />
               <v-select
-                id="client" v-model="clientCode" :items="clientItems" item-title="name" item-value="code"
+                id="client" v-model="clientCode" :items="clientItems" item-title="login_label" item-value="code"
                 :label="t('LoginView.client')" variant="outlined" density="comfortable" class="pt-3"
                 @update:modelValue="clearError"
               />
@@ -116,10 +116,18 @@ export default {
       clientCode.value = preferred ? preferred.code : (list[0]?.code ?? null)
     }
 
+    const normalizeClientItems = (list) => {
+      return (list || []).map((client) => {
+        const companyNumber = client.company_number || (client.code ? `MD-${String(client.code).padStart(5, '0')}` : '')
+        const loginLabel = client.login_label || [companyNumber, client.name].filter(Boolean).join(' - ')
+        return { ...client, company_number: companyNumber, login_label: loginLabel || client.name }
+      })
+    }
+
     onMounted(async () => {
       try {
         const { clients, is_demo } = await oserp.fetchClients()
-        clientItems.value = clients || []
+        clientItems.value = normalizeClientItems(clients)
         setDefaultClient(clientItems.value)
 
         // Demo-Modus: Zugangsdaten automatisch eintragen

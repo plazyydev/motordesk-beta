@@ -12,6 +12,81 @@ function canUserCreateCompany($login) {
     return in_array($login, $adminUsers, true);
 }
 
+function mdAuthNormalizeCompanyNumber($value) {
+    $value = strtoupper(trim((string)$value));
+    $value = preg_replace('/[^A-Z0-9]+/', '-', $value);
+    return trim($value, '-');
+}
+
+function mdAuthFallbackCompanyNumber($id) {
+    return 'MD-' . str_pad((string)intval($id), 5, '0', STR_PAD_LEFT);
+}
+
+function mdAuthEnsureClientMetadata($auth) {
+    $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS company_number text");
+    $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS master_data_locked boolean NOT NULL DEFAULT true");
+    $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS verification_status text NOT NULL DEFAULT 'pending'");
+    $auth->execute("ALTER TABLE auth.clients ADD COLUMN IF NOT EXISTS setup_status text NOT NULL DEFAULT 'needs_review'");
+    $auth->execute("
+        UPDATE auth.clients
+        SET company_number = 'MD-' || lpad(id::text, 5, '0')
+        WHERE company_number IS NULL OR btrim(company_number) = ''
+    ");
+    $auth->execute("UPDATE auth.clients SET master_data_locked = true WHERE master_data_locked IS NULL");
+    $auth->execute("UPDATE auth.clients SET verification_status = 'pending' WHERE verification_status IS NULL OR verification_status = ''");
+    $auth->execute("UPDATE auth.clients SET setup_status = 'needs_review' WHERE setup_status IS NULL OR setup_status = ''");
+    $auth->execute("CREATE UNIQUE INDEX IF NOT EXISTS auth_clients_company_number_key ON auth.clients (company_number)");
+}
+
+function mdAuthNextCompanyNumber($auth) {
+    mdAuthEnsureClientMetadata($auth);
+    $row = $auth->getOne("
+        SELECT COALESCE(MAX(substring(company_number FROM '^MD-([0-9]+)$')::integer), 0) + 1 AS next_num
+        FROM auth.clients
+        WHERE company_number ~ '^MD-[0-9]+$'
+    ");
+    return 'MD-' . str_pad((string)intval($row['next_num'] ?? 1), 5, '0', STR_PAD_LEFT);
+}
+
+function mdAuthEnsureUserClientAdminAccess($auth, int $clientId, int $userId) {
+    $group = $auth->getOne(
+        'INSERT INTO auth."group" (name, mtime)
+         VALUES (:name, now())
+         ON CONFLICT (name) DO UPDATE SET mtime = now()
+         RETURNING id',
+        [':name' => 'Administratoren']
+    );
+    $groupId = intval($group['id']);
+
+    $auth->execute(
+        'INSERT INTO auth.clients_users (client_id, user_id)
+         VALUES (:client_id, :user_id)
+         ON CONFLICT DO NOTHING',
+        [':client_id' => $clientId, ':user_id' => $userId]
+    );
+    $auth->execute(
+        'INSERT INTO auth.clients_groups (client_id, group_id)
+         VALUES (:client_id, :group_id)
+         ON CONFLICT DO NOTHING',
+        [':client_id' => $clientId, ':group_id' => $groupId]
+    );
+    $auth->execute(
+        'INSERT INTO auth.user_group (user_id, group_id)
+         VALUES (:user_id, :group_id)
+         ON CONFLICT DO NOTHING',
+        [':user_id' => $userId, ':group_id' => $groupId]
+    );
+
+    foreach (['admin', 'special_access', 'customer_vendor_edit', 'customer_vendor_all_edit', 'invoice_edit', 'sales_order_edit', 'sales_quotation_edit', 'sales_delivery_order_edit'] as $right) {
+        $auth->execute(
+            'INSERT INTO auth.group_rights (group_id, "right", granted)
+             VALUES (:group_id, :right, true)
+             ON CONFLICT (group_id, "right") DO UPDATE SET granted = true',
+            [':group_id' => $groupId, ':right' => $right]
+        );
+    }
+}
+
 /**
  * Lädt die Liste aller verfügbaren Mandanten
  *
@@ -20,13 +95,19 @@ function canUserCreateCompany($login) {
  */
 function getClients($data) {
     $session = DbhAuth::begin();
+    mdAuthEnsureClientMetadata($session);
 
     $query = <<<SQL
         SELECT json_agg(clients) AS clients
         FROM (
-            SELECT id AS code, name, is_default
+            SELECT
+                id AS code,
+                name,
+                company_number,
+                company_number || ' - ' || name AS login_label,
+                is_default
             FROM auth.clients
-            ORDER BY name
+            ORDER BY company_number, name
         ) AS clients
     SQL;
 
@@ -88,6 +169,7 @@ function login($data) {
     }
 
     $auth = DbhAuth::begin();
+    mdAuthEnsureClientMetadata($auth);
 
     $username = $data['username'];
     $query = <<<SQL
@@ -111,7 +193,7 @@ function login($data) {
     $auth->setClientId($clientId);
 
     $query = <<<SQL
-        SELECT name
+        SELECT name, company_number
         FROM auth.clients_users cu
         JOIN auth.clients c ON cu.client_id = c.id
         WHERE client_id = :client_id
@@ -171,6 +253,7 @@ function login($data) {
         $loginData = array(
             "login" => $context['login'],
             "client" => $clientName[0]['name'],
+            "company_number" => $clientName[0]['company_number'],
             "user_id" => $userId,
             "client_id" => $clientId,
             "employee_id" => $employeeId,
@@ -218,6 +301,7 @@ function restoreSession($data) {
     }
 
     $session = DbhAuth::begin();
+    mdAuthEnsureClientMetadata($session);
     $sessionId = $session->getCookie();
 
     // Abgelaufene Sessions werden vom DB-Trigger cleanup_session_oserp geputzt (120h Inaktivitaet).
@@ -227,7 +311,8 @@ function restoreSession($data) {
             client_id,
             remember_me,
             u.login,
-            c.name AS client_name
+            c.name AS client_name,
+            c.company_number
         FROM auth.session_oserp s
         JOIN auth.user u ON s.user_id = u.id
         JOIN auth.clients c ON s.client_id = c.id
@@ -266,6 +351,7 @@ function restoreSession($data) {
         "client_id" => $context['client_id'],
         "login" => $context['login'],
         "client" => $context['client_name'],
+        "company_number" => $context['company_number'],
         "auth_user_data" => getAuthUserData(),
         "permissions" => $session->fetchAllPermissions(),
         "auth_groups" => $session->fetchClientGroups(),
@@ -291,6 +377,7 @@ function switchClient($data) {
     }
 
     $auth = DbhAuth::begin();
+    mdAuthEnsureClientMetadata($auth);
     $sessionId = $auth->getCookie();
 
     // Aktuelle Session prüfen
@@ -311,7 +398,7 @@ function switchClient($data) {
 
     // Prüfen ob Benutzer dem neuen Mandanten zugeordnet ist
     $query = <<<SQL
-        SELECT name
+        SELECT name, company_number
         FROM auth.clients_users cu
         JOIN auth.clients c ON cu.client_id = c.id
         WHERE client_id = :client_id
@@ -323,7 +410,20 @@ function switchClient($data) {
     ]);
 
     if (empty($clientName)) {
-        throw new ApiError('USER_NOT_ASSIGNED_TO_CLIENT', 'Benutzer nicht dem Mandanten zugeordnet');
+        if (!canUserCreateCompany($context['login'])) {
+            throw new ApiError('USER_NOT_ASSIGNED_TO_CLIENT', 'Benutzer nicht der Firma zugeordnet');
+        }
+
+        $targetClient = $auth->getOne(
+            'SELECT name, company_number FROM auth.clients WHERE id = :client_id',
+            [':client_id' => $clientId]
+        );
+        if (!$targetClient) {
+            throw new ApiError('CLIENT_NOT_FOUND', 'Firma wurde nicht gefunden');
+        }
+
+        mdAuthEnsureUserClientAdminAccess($auth, $clientId, intval($userId));
+        $clientName = [$targetClient];
     }
 
     // Session auf neuen Mandanten umschreiben
@@ -344,6 +444,7 @@ function switchClient($data) {
     $loginData = array(
         'login' => $context['login'],
         'client' => $clientName[0]['name'],
+        'company_number' => $clientName[0]['company_number'],
         'user_id' => $userId,
         'client_id' => $clientId,
         'employee_id' => $employeeId,

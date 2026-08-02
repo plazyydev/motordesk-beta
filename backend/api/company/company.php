@@ -29,6 +29,7 @@ function createCompany($data) {
     // ── 1. Berechtigung prüfen ──
     $auth = DbhAuth::begin();
     $auth->fetchSessionData();
+    mdAuthEnsureClientMetadata($auth);
     $login = $auth->getLogin();
 
     $adminUsers = array_map('trim', explode(',', COMPANY_ADMIN_USERS));
@@ -41,6 +42,10 @@ function createCompany($data) {
     $companyName = trim($data['companyName'] ?? '');
     $dbName = trim($data['dbName'] ?? '');
     $skr = trim($data['skr'] ?? '');
+    $companyNumber = mdAuthNormalizeCompanyNumber($data['companyNumber'] ?? '');
+    if ($companyNumber === '') {
+        $companyNumber = mdAuthNextCompanyNumber($auth);
+    }
 
     if ($companyName === '' || $dbName === '') {
         resultInfo(false, 'VALIDATION_ERROR', 'Firmenname und Datenbankname sind erforderlich');
@@ -58,6 +63,11 @@ function createCompany($data) {
         return;
     }
 
+    if (!preg_match('/^[A-Z0-9][A-Z0-9-]{2,31}$/', $companyNumber)) {
+        resultInfo(false, 'VALIDATION_ERROR', 'Firmennummer darf nur Buchstaben, Zahlen und Bindestriche enthalten');
+        return;
+    }
+
     // Prüfe ob Firmenname schon existiert
     $existing = $auth->getOne(
         "SELECT id FROM auth.clients WHERE name = :name",
@@ -65,6 +75,15 @@ function createCompany($data) {
     );
     if ($existing) {
         resultInfo(false, 'COMPANY_NAME_EXISTS', "Firmenname '$companyName' bereits vergeben");
+        return;
+    }
+
+    $existingNumber = $auth->getOne(
+        "SELECT id FROM auth.clients WHERE company_number = :company_number",
+        [':company_number' => $companyNumber]
+    );
+    if ($existingNumber) {
+        resultInfo(false, 'COMPANY_NUMBER_EXISTS', "Firmennummer '$companyNumber' bereits vergeben");
         return;
     }
 
@@ -176,11 +195,18 @@ function createCompany($data) {
     // ── 8. Firma in auth.clients registrieren + Benutzer zuordnen ──
     try {
         $newClientId = $auth->getOne(
-            "INSERT INTO auth.clients (name, dbhost, dbport, dbname, dbuser, dbpasswd)
-             VALUES (:name, :dbhost, :dbport, :dbname, :dbuser, :dbpasswd)
+            "INSERT INTO auth.clients (
+                 name, company_number, dbhost, dbport, dbname, dbuser, dbpasswd,
+                 master_data_locked, verification_status, setup_status
+             )
+             VALUES (
+                 :name, :company_number, :dbhost, :dbport, :dbname, :dbuser, :dbpasswd,
+                 true, 'pending', 'needs_review'
+             )
              RETURNING id",
             [
                 ':name' => $companyName,
+                ':company_number' => $companyNumber,
                 ':dbhost' => $dbHost,
                 ':dbport' => $dbPort,
                 ':dbname' => $dbName,
@@ -218,6 +244,7 @@ function createCompany($data) {
 
     resultInfo(true, 'Firma erfolgreich angelegt', [
         'companyName' => $companyName,
+        'companyNumber' => $companyNumber,
         'dbName' => $dbName,
         'skr' => $skr
     ]);
