@@ -214,6 +214,16 @@ CREATE TABLE IF NOT EXISTS oe_defects (
     note                text,
     sort_order          INTEGER DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS ar_defects (
+    id                  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ar_id               INTEGER NOT NULL REFERENCES ar(id) ON DELETE CASCADE,
+    defect_code         text NOT NULL,
+    defect_description  text NOT NULL,
+    defect_class        text NOT NULL,
+    note                text,
+    sort_order          INTEGER DEFAULT 0
+);
 SQL
 }
 

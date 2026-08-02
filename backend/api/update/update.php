@@ -1167,10 +1167,11 @@ function getDatabaseNames($data) {
 }
 
 /**
- * API-Funktion: Aktualisiert die Auth-DB und ALLE Company-Datenbanken
+ * API-Funktion: Aktualisiert die Auth-DB und alle Kundenpanel-Datenbanken
  *
- * Liest alle Mandanten aus auth.clients und fuehrt fuer jede Datenbank
- * ein Backup und Schema-Update durch.
+ * Liest alle echten Kundenpanels aus auth.clients und fuehrt fuer jede
+ * Datenbank ein Backup und Schema-Update durch. Das interne Betreiber-Panel
+ * wird bewusst nicht als Kundenpanel migriert.
  *
  * POST /api/update/
  * {
@@ -1248,7 +1249,12 @@ function updateAllDatabases($data) {
 
     // ── 4. Alle Clients aus auth.clients laden ──
     $auth = DbhAuth::begin();
-    $clientsQuery = "SELECT id, name, dbhost, dbport, dbname, dbuser, dbpasswd FROM auth.clients ORDER BY id";
+    $clientsQuery = "
+        SELECT id, name, dbhost, dbport, dbname, dbuser, dbpasswd
+        FROM auth.clients
+        WHERE COALESCE(is_system, false) = false
+        ORDER BY company_number, id
+    ";
     $clients = $auth->getAll($clientsQuery, []);
 
     if (empty($clients)) {

@@ -172,7 +172,7 @@ export default {
         const response = await fetch('/api/update/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'updateAllDatabases', dry_run: false })
+          body: JSON.stringify({ action: 'updateSchema', dry_run: false })
         })
         const data = await response.json()
 
@@ -180,7 +180,7 @@ export default {
           updateSuccess.value = true
           return true
         }
-        updateError.value = data.text || t('LoginView.updateError')
+        updateError.value = readUpdateError(data)
         return false
       } catch (error) {
         console.error('Fehler beim Update:', error)
@@ -189,6 +189,18 @@ export default {
       } finally {
         updateLoading.value = false
       }
+    }
+
+    const readUpdateError = (data) => {
+      const firstError = data?.payload?.errors?.[0]
+      if (firstError) return firstError
+
+      const firstClientError = data?.payload?.clients
+        ?.flatMap(client => client?.update?.errors || [])
+        ?.find(Boolean)
+      if (firstClientError) return firstClientError
+
+      return data?.text || t('LoginView.updateError')
     }
 
     return {

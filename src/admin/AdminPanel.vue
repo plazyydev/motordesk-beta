@@ -578,13 +578,26 @@ async function boot() {
 async function adminPost(payload) {
   const { data } = await axios.post('/api/admin/', payload)
   if (!data.success) {
-    throw new Error(data.debug || data.payload || data.text || 'ADMIN_API_ERROR')
+    throw new Error(adminErrorMessage(data))
   }
   return data.payload || {}
 }
 
+function adminErrorMessage(data) {
+  const firstError = data?.payload?.errors?.[0]
+  if (firstError) return firstError
+
+  const firstClientError = data?.payload?.clients
+    ?.flatMap(client => client?.update?.errors || [])
+    ?.find(Boolean)
+  if (firstClientError) return firstClientError
+
+  return data?.debug || data?.text || 'ADMIN_API_ERROR'
+}
+
 async function reloadAdminOverview() {
   const overview = await adminPost({ action: 'getAdminOverview' })
+  errorMessage.value = ''
   clients.value = overview.clients || []
   users.value = overview.users || []
   invites.value = overview.invites || []
@@ -671,6 +684,7 @@ function normalizeCompanyNumber(value) {
 async function doCreateCompany() {
   createCompanyLoading.value = true
   createCompanyError.value = ''
+  errorMessage.value = ''
   try {
     const companyName = createCompanyName.value.trim()
     await oserp.createCompany(companyName, createCompanyDbName.value.trim(), createCompanySkr.value, createCompanyNumber.value.trim())
@@ -707,6 +721,7 @@ function closeInviteDialog() {
 async function doCreateInvite() {
   inviteLoading.value = true
   inviteError.value = ''
+  errorMessage.value = ''
   inviteResult.value = null
   try {
     const payload = await adminPost({

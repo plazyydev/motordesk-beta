@@ -175,9 +175,11 @@ function createCompany($data) {
 
         $upstallResult = updateDatabaseSchema($schemaFiles, $csvFiles, false, $newDb);
         if (!$upstallResult['success']) {
-            writeLog("CRM-Upstall Warnungen für '$dbName': " . implode(', ', $upstallResult['errors']), true, DLOG_WRN);
+            $errors = implode('; ', $upstallResult['errors'] ?? []);
+            writeLog("MotorDesk-Upstall fuer '$dbName' fehlgeschlagen: " . $errors, true, DLOG_ERR);
+            throw new Exception("MotorDesk-Schema konnte nicht vollstaendig erstellt werden: " . $errors);
         }
-        writeLog("CRM-Upstall auf '$dbName' ausgeführt", true, DLOG_INF);
+        writeLog("MotorDesk-Upstall auf '$dbName' ausgefuehrt", true, DLOG_INF);
 
         // ── 8. Vollständigen DATEV-Kontenrahmen ergänzen (idempotent, + Reparatur fehlender taxkeys) ──
         // Der Seed-Dump enthält nur einen reduzierten Starter-Kontenrahmen; hier wird er auf den
