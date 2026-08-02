@@ -112,7 +112,16 @@ wait_for_db() {
 database_exists() {
     local db_name="$1"
     local exists
-    exists="$(dc exec -T db psql -U "$POSTGRES_USER" -d postgres -v db_name="$db_name" -tAc "SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name');" | tr -d '[:space:]')"
+    exists="$(
+        dc exec -T db psql \
+            -v ON_ERROR_STOP=1 \
+            -U "$POSTGRES_USER" \
+            -d postgres \
+            -v db_name="$db_name" \
+            -tA <<'SQL' | tr -d '[:space:]'
+SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = :'db_name');
+SQL
+    )"
     [[ "$exists" == "t" ]]
 }
 
@@ -132,7 +141,19 @@ table_exists() {
     local schema_name="$2"
     local table_name="$3"
     local exists
-    exists="$(psql_db "$db_name" -v schema_name="$schema_name" -v table_name="$table_name" -tAc "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = :'schema_name' AND table_name = :'table_name');" | tr -d '[:space:]')"
+    exists="$(
+        psql_db "$db_name" \
+            -v schema_name="$schema_name" \
+            -v table_name="$table_name" \
+            -tA <<'SQL' | tr -d '[:space:]'
+SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = :'schema_name'
+      AND table_name = :'table_name'
+);
+SQL
+    )"
     [[ "$exists" == "t" ]]
 }
 
@@ -149,6 +170,36 @@ load_sql_file() {
     rel_path="${sql_file#"$PROJECT_ROOT/"}"
     info "Lade $rel_path in $db_name"
     dc exec -T db psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$db_name" < "$sql_file"
+}
+
+load_sql_from_marker() {
+    local db_name="$1"
+    local sql_file="$2"
+    local marker="$3"
+    local rel_path
+
+    if [[ ! -f "$sql_file" ]]; then
+        error "SQL-Datei nicht gefunden: $sql_file"
+        exit 1
+    fi
+
+    if ! grep -Fq "$marker" "$sql_file"; then
+        error "Marker nicht gefunden in $sql_file: $marker"
+        exit 1
+    fi
+
+    rel_path="${sql_file#"$PROJECT_ROOT/"}"
+    info "Lade $rel_path ab Marker: $marker"
+    awk -v marker="$marker" 'index($0, marker) { found = 1 } found { print }' "$sql_file" \
+        | dc exec -T db psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$db_name"
+}
+
+ensure_company_compatibility() {
+    info "Pruefe Company-Kompatibilitaetsspalten."
+    psql_db "$DB_COMPANY_NAME" <<'SQL'
+ALTER TABLE customer ADD COLUMN IF NOT EXISTS phone3 text;
+ALTER TABLE vendor ADD COLUMN IF NOT EXISTS phone3 text;
+SQL
 }
 
 seed_admin_employee() {
@@ -208,10 +259,19 @@ else
     load_sql_file "$DB_COMPANY_NAME" "$PROJECT_ROOT/backend/upstall/$MOTORDESK_CHART/company_schema.sql"
 fi
 
-if table_exists "$DB_COMPANY_NAME" public features_oserp; then
-    success "CRM-Erweiterung ist bereits vorhanden."
+ensure_company_compatibility
+
+CRM_SCHEMA_FILE="$PROJECT_ROOT/backend/upstall/crm/company_schema.sql"
+if table_exists "$DB_COMPANY_NAME" public ebay_listings; then
+    success "CRM-Erweiterung ist bereits vollstaendig vorhanden."
+elif table_exists "$DB_COMPANY_NAME" public features_oserp; then
+    warn "CRM-Erweiterung ist unvollstaendig; setze den Import fort."
+    load_sql_from_marker \
+        "$DB_COMPANY_NAME" \
+        "$CRM_SCHEMA_FILE" \
+        "DROP TRIGGER IF EXISTS trg_customer_backfill_crmti ON customer;"
 else
-    load_sql_file "$DB_COMPANY_NAME" "$PROJECT_ROOT/backend/upstall/crm/company_schema.sql"
+    load_sql_file "$DB_COMPANY_NAME" "$CRM_SCHEMA_FILE"
 fi
 
 if table_exists "$DB_COMPANY_NAME" public cars_lxcars; then
