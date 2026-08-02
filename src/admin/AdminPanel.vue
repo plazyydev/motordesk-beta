@@ -13,14 +13,14 @@
           <v-btn href="/" variant="tonal" color="primary" prepend-icon="mdi-arrow-left">
             App
           </v-btn>
-          <v-btn icon="mdi-logout" variant="text" :title="'Logout'" @click="logout" />
+          <v-btn icon="mdi-logout" variant="text" title="Logout" @click="logout" />
         </div>
       </header>
 
       <section class="admin-layout">
         <aside class="admin-side">
           <div>
-            <p class="admin-kicker">System</p>
+            <p class="admin-kicker">Betreiber</p>
             <h1>Admin</h1>
           </div>
 
@@ -29,8 +29,12 @@
             <strong>{{ clients.length }}</strong>
           </div>
           <div class="admin-stat">
-            <span>Aktive Firma</span>
-            <strong>{{ activeClientName || '-' }}</strong>
+            <span>Benutzer</span>
+            <strong>{{ users.length }}</strong>
+          </div>
+          <div class="admin-stat">
+            <span>Einladungen</span>
+            <strong>{{ invites.length }}</strong>
           </div>
           <div class="admin-stat">
             <span>Admin-Recht</span>
@@ -39,25 +43,49 @@
         </aside>
 
         <main class="admin-content">
+          <v-alert v-if="errorMessage" type="error" variant="tonal" closable class="mb-4" @click:close="errorMessage = ''">
+            {{ errorMessage }}
+          </v-alert>
+
+          <v-alert v-if="inviteResult" type="success" variant="tonal" closable class="mb-4" @click:close="inviteResult = null">
+            <div class="invite-result">
+              <strong>Zugang angelegt</strong>
+              <span>Login: {{ inviteResult.credentials.login }}</span>
+              <span v-if="inviteResult.credentials.password">Passwort: {{ inviteResult.credentials.password }}</span>
+              <span>{{ inviteResult.email_delivery.message }}</span>
+              <v-btn size="small" variant="tonal" color="primary" @click="copyInvite(inviteResult)">
+                <v-icon start>mdi-content-copy</v-icon>
+                Kopieren
+              </v-btn>
+            </div>
+          </v-alert>
+
           <div class="admin-section-head">
             <div>
               <p class="admin-kicker">Mandanten</p>
               <h2>Firmen</h2>
             </div>
-            <v-btn
-              color="primary"
-              variant="flat"
-              prepend-icon="mdi-domain-plus"
-              :disabled="!canCreateCompany"
-              @click="openCreateCompanyDialog"
-            >
-              Neue Firma
-            </v-btn>
+            <div class="admin-actions">
+              <v-btn
+                color="primary"
+                variant="tonal"
+                prepend-icon="mdi-account-plus"
+                :disabled="!canCreateCompany || clients.length === 0"
+                @click="openInviteDialog()"
+              >
+                Admin einladen
+              </v-btn>
+              <v-btn
+                color="primary"
+                variant="flat"
+                prepend-icon="mdi-domain-plus"
+                :disabled="!canCreateCompany"
+                @click="openCreateCompanyDialog"
+              >
+                Neue Firma
+              </v-btn>
+            </div>
           </div>
-
-          <v-alert v-if="errorMessage" type="error" variant="tonal" closable class="mb-4" @click:close="errorMessage = ''">
-            {{ errorMessage }}
-          </v-alert>
 
           <div v-if="loading" class="admin-loading">
             <v-progress-circular indeterminate color="primary" />
@@ -79,9 +107,43 @@
                   </v-chip>
                 </div>
                 <h3>{{ client.name }}</h3>
-                <p>{{ client.code }}</p>
+                <p>{{ client.dbname || client.code }}</p>
+                <div class="company-card__meta">
+                  <span>{{ client.assigned_users || 0 }} Benutzer</span>
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click.stop="openInviteDialog(client)"
+                  >
+                    Einladen
+                  </v-btn>
+                </div>
               </v-card-text>
             </v-card>
+          </div>
+
+          <div class="admin-section-head mt-8">
+            <div>
+              <p class="admin-kicker">Zugaenge</p>
+              <h2>Einladungen</h2>
+            </div>
+          </div>
+
+          <div class="invite-list">
+            <div v-if="!invites.length" class="empty-state">
+              Noch keine Einladungen.
+            </div>
+            <div v-for="invite in invites" v-else :key="invite.id" class="invite-row">
+              <v-icon color="primary">{{ invite.role === 'setup_agent' ? 'mdi-account-hard-hat' : 'mdi-shield-account' }}</v-icon>
+              <div>
+                <strong>{{ invite.name || invite.email }}</strong>
+                <span>{{ invite.email }} · {{ invite.client_name || 'Firma geloescht' }}</span>
+              </div>
+              <v-chip size="small" variant="tonal" :color="invite.email_sent ? 'success' : 'warning'">
+                {{ invite.email_sent ? 'Mail gesendet' : 'Mail offen' }}
+              </v-chip>
+            </div>
           </div>
 
           <div class="admin-section-head mt-8">
@@ -96,6 +158,24 @@
               <v-icon color="primary">{{ tool.icon }}</v-icon>
               <span>{{ tool.title }}</span>
             </a>
+          </div>
+
+          <div class="admin-section-head mt-8">
+            <div>
+              <p class="admin-kicker">Vorlagen</p>
+              <h2>Editor & Dokumente</h2>
+            </div>
+            <v-chip size="small" color="primary" variant="tonal">Naechste Phase</v-chip>
+          </div>
+
+          <div class="editor-grid">
+            <div v-for="editor in templateEditors" :key="editor.title" class="editor-card">
+              <v-icon color="primary">{{ editor.icon }}</v-icon>
+              <div>
+                <strong>{{ editor.title }}</strong>
+                <span>{{ editor.text }}</span>
+              </div>
+            </div>
           </div>
         </main>
       </section>
@@ -152,11 +232,97 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <v-dialog v-model="showInviteDialog" max-width="560" persistent>
+        <v-card>
+          <v-card-title class="bg-primary text-white">
+            <v-icon start>mdi-account-plus</v-icon>
+            Admin-Zugang einladen
+          </v-card-title>
+          <v-card-text class="pa-4">
+            <v-select
+              v-model="inviteClientId"
+              :items="clients"
+              item-title="name"
+              item-value="code"
+              label="Firma"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+            />
+            <v-text-field
+              ref="inviteEmailRef"
+              v-model="inviteEmail"
+              label="E-Mail"
+              type="email"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+              :error-messages="inviteError"
+              @update:model-value="inviteError = ''"
+            />
+            <v-text-field
+              v-model="inviteName"
+              label="Name"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+            />
+            <v-text-field
+              v-model="inviteLogin"
+              label="Login optional"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+              hint="Leer lassen, wenn aus der E-Mail automatisch erzeugt werden soll."
+              persistent-hint
+            />
+            <v-select
+              v-model="inviteRole"
+              :items="roleOptions"
+              label="Rolle"
+              variant="outlined"
+              density="comfortable"
+              class="mb-3"
+            />
+            <v-switch
+              v-model="inviteSendEmail"
+              color="primary"
+              inset
+              label="Einladung direkt per E-Mail senden, wenn SMTP konfiguriert ist"
+              hide-details
+              class="mb-2"
+            />
+            <v-switch
+              v-model="inviteResetPassword"
+              color="primary"
+              inset
+              label="Bei bestehendem Benutzer neues Startpasswort setzen"
+              hide-details
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-btn @click="closeInviteDialog">Abbrechen</v-btn>
+            <v-spacer />
+            <v-btn
+              color="primary"
+              variant="flat"
+              :loading="inviteLoading"
+              :disabled="!canSubmitInvite"
+              @click="doCreateInvite"
+            >
+              <v-icon start>mdi-send</v-icon>
+              Zugang anlegen
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
+import axios from 'axios'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { oserpStore } from '@/core/stores/oserp.store.js'
 import { AuthStatus } from '@/core/constants/auth.js'
@@ -166,6 +332,10 @@ const oserp = oserpStore()
 const loading = ref(true)
 const errorMessage = ref('')
 const clients = ref([])
+const users = ref([])
+const invites = ref([])
+const inviteResult = ref(null)
+
 const showCreateCompanyDialog = ref(false)
 const createCompanyNameRef = ref(null)
 const createCompanyName = ref('')
@@ -174,9 +344,26 @@ const createCompanySkr = ref('skr03')
 const createCompanyError = ref('')
 const createCompanyLoading = ref(false)
 
+const showInviteDialog = ref(false)
+const inviteEmailRef = ref(null)
+const inviteClientId = ref(null)
+const inviteEmail = ref('')
+const inviteName = ref('')
+const inviteLogin = ref('')
+const inviteRole = ref('company_admin')
+const inviteSendEmail = ref(true)
+const inviteResetPassword = ref(true)
+const inviteLoading = ref(false)
+const inviteError = ref('')
+
 const skrOptions = [
   { title: 'SKR03', value: 'skr03' },
   { title: 'SKR04', value: 'skr04' },
+]
+
+const roleOptions = [
+  { title: 'Firmen-Admin', value: 'company_admin' },
+  { title: 'Setup-Mitarbeiter', value: 'setup_agent' },
 ]
 
 const tools = [
@@ -188,9 +375,16 @@ const tools = [
   { title: 'Developer Tools', icon: 'mdi-wrench', href: '/system/developer-tools' },
 ]
 
+const templateEditors = [
+  { title: 'Rechnungen', icon: 'mdi-file-document-edit', text: 'Briefkopf, Logo, Fusszeilen und PDF-Vorlagen vorbereiten.' },
+  { title: 'Auftraege & Angebote', icon: 'mdi-clipboard-text', text: 'Texte, Positionen, Standardlayout und Uploads zentral pflegen.' },
+  { title: 'E-Mail-Texte', icon: 'mdi-email-edit', text: 'Vorlagen fuer Versand, Erinnerungen und Freigabe-Mails einstellen.' },
+]
+
 const activeClientName = computed(() => oserp.session.client || '')
 const canCreateCompany = computed(() => !!oserp.session.can_create_company)
 const canSubmitCompany = computed(() => createCompanyName.value.trim() !== '' && createCompanyDbName.value.trim() !== '')
+const canSubmitInvite = computed(() => !!inviteClientId.value && inviteEmail.value.trim() !== '')
 const sessionLabel = computed(() => oserp.session.user ? `${oserp.session.user} - ${activeClientName.value}` : 'Nicht angemeldet')
 
 onMounted(async () => {
@@ -206,7 +400,7 @@ async function boot() {
       window.location.href = '/login?redirect=/admin.html'
       return
     }
-    await reloadClients()
+    await reloadAdminOverview()
   } catch (error) {
     errorMessage.value = readError(error, 'Admin-Daten konnten nicht geladen werden.')
   } finally {
@@ -214,9 +408,19 @@ async function boot() {
   }
 }
 
-async function reloadClients() {
-  const result = await oserp.fetchClients()
-  clients.value = result.clients || []
+async function adminPost(payload) {
+  const { data } = await axios.post('/api/admin/', payload)
+  if (!data.success) {
+    throw new Error(data.debug || data.text || 'ADMIN_API_ERROR')
+  }
+  return data.payload || {}
+}
+
+async function reloadAdminOverview() {
+  const overview = await adminPost({ action: 'getAdminOverview' })
+  clients.value = overview.clients || []
+  users.value = overview.users || []
+  invites.value = overview.invites || []
 }
 
 async function switchClient(client) {
@@ -225,7 +429,7 @@ async function switchClient(client) {
   errorMessage.value = ''
   try {
     await oserp.switchClient(client.code)
-    await reloadClients()
+    await reloadAdminOverview()
   } catch (error) {
     errorMessage.value = readError(error, 'Firma konnte nicht gewechselt werden.')
   } finally {
@@ -273,11 +477,69 @@ async function doCreateCompany() {
     const companyName = createCompanyName.value.trim()
     await oserp.createCompany(companyName, createCompanyDbName.value.trim(), createCompanySkr.value)
     closeCreateCompanyDialog()
-    await reloadClients()
+    await reloadAdminOverview()
   } catch (error) {
     createCompanyError.value = readError(error, 'Firma konnte nicht angelegt werden.')
   } finally {
     createCompanyLoading.value = false
+  }
+}
+
+function openInviteDialog(client = null) {
+  inviteClientId.value = client?.code || clients.value[0]?.code || null
+  inviteEmail.value = ''
+  inviteName.value = ''
+  inviteLogin.value = ''
+  inviteRole.value = 'company_admin'
+  inviteSendEmail.value = true
+  inviteResetPassword.value = true
+  inviteError.value = ''
+  showInviteDialog.value = true
+  nextTick(() => inviteEmailRef.value?.focus())
+}
+
+function closeInviteDialog() {
+  showInviteDialog.value = false
+  inviteError.value = ''
+}
+
+async function doCreateInvite() {
+  inviteLoading.value = true
+  inviteError.value = ''
+  inviteResult.value = null
+  try {
+    const payload = await adminPost({
+      action: 'createAdminInvite',
+      client_id: inviteClientId.value,
+      email: inviteEmail.value.trim(),
+      name: inviteName.value.trim(),
+      login: inviteLogin.value.trim(),
+      role: inviteRole.value,
+      send_email: inviteSendEmail.value,
+      reset_password: inviteResetPassword.value,
+    })
+    inviteResult.value = payload
+    closeInviteDialog()
+    await reloadAdminOverview()
+  } catch (error) {
+    inviteError.value = readError(error, 'Einladung konnte nicht angelegt werden.')
+  } finally {
+    inviteLoading.value = false
+  }
+}
+
+async function copyInvite(result) {
+  const credentials = result.credentials || {}
+  const text = [
+    'MotorDesk Zugang',
+    `Login: ${credentials.login || ''}`,
+    credentials.password ? `Passwort: ${credentials.password}` : '',
+    `Admin-Panel: ${credentials.admin_url || '/admin.html'}`,
+  ].filter(Boolean).join('\n')
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch (error) {
+    console.warn('Clipboard unavailable', error)
   }
 }
 
@@ -290,7 +552,7 @@ async function logout() {
 }
 
 function readError(error, fallback) {
-  return error?.message || error?.code || fallback
+  return error?.response?.data?.debug || error?.response?.data?.text || error?.message || error?.code || fallback
 }
 </script>
 
@@ -302,12 +564,12 @@ function readError(error, fallback) {
 }
 
 .admin-topbar {
-  height: 64px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 0 24px;
+  padding: 12px 24px;
   background: var(--md-color-surface);
   border-bottom: 1px solid var(--md-color-line);
 }
@@ -334,10 +596,12 @@ function readError(error, fallback) {
   font-size: 0.8rem;
 }
 
-.admin-topbar__actions {
+.admin-topbar__actions,
+.admin-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .admin-layout {
@@ -387,7 +651,9 @@ function readError(error, fallback) {
 }
 
 .admin-stat span,
-.company-card p {
+.company-card p,
+.editor-card span,
+.invite-row span {
   color: var(--md-color-muted);
   font-size: 0.82rem;
 }
@@ -415,21 +681,25 @@ function readError(error, fallback) {
 }
 
 .company-grid,
-.tool-grid {
+.tool-grid,
+.editor-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
 }
 
 .company-card,
-.tool-card {
+.tool-card,
+.editor-card,
+.invite-row {
   border-radius: 8px;
   background: var(--md-color-surface);
-  transition: border-color 0.18s ease, transform 0.18s ease;
+  border: 1px solid var(--md-color-line);
 }
 
 .company-card {
   cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
 }
 
 .company-card:hover,
@@ -438,10 +708,15 @@ function readError(error, fallback) {
   transform: translateY(-1px);
 }
 
-.company-card__top {
+.company-card__top,
+.company-card__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+}
+
+.company-card__top {
   margin-bottom: 14px;
 }
 
@@ -451,11 +726,18 @@ function readError(error, fallback) {
 }
 
 .company-card p {
-  margin: 6px 0 0;
+  margin: 6px 0 12px;
   overflow-wrap: anywhere;
 }
 
-.tool-card {
+.company-card__meta {
+  color: var(--md-color-muted);
+  font-size: 0.82rem;
+}
+
+.tool-card,
+.editor-card,
+.invite-row {
   min-height: 82px;
   display: flex;
   align-items: center;
@@ -463,8 +745,31 @@ function readError(error, fallback) {
   padding: 16px;
   color: var(--md-color-ink);
   text-decoration: none;
-  border: 1px solid var(--md-color-line);
   font-weight: 700;
+}
+
+.editor-card div,
+.invite-row div,
+.invite-result {
+  display: grid;
+  gap: 4px;
+}
+
+.invite-list {
+  display: grid;
+  gap: 10px;
+}
+
+.invite-row {
+  min-height: 64px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.empty-state {
+  padding: 20px;
+  color: var(--md-color-muted);
+  border: 1px dashed var(--md-color-line);
+  border-radius: 8px;
 }
 
 @media (max-width: 860px) {
@@ -474,19 +779,18 @@ function readError(error, fallback) {
     flex-direction: column;
   }
 
-  .admin-topbar {
-    height: auto;
-    padding: 16px;
-  }
-
   .admin-layout {
     grid-template-columns: 1fr;
     padding: 16px;
   }
 
-  .admin-topbar__actions {
+  .admin-topbar__actions,
+  .admin-actions {
     width: 100%;
-    flex-wrap: wrap;
+  }
+
+  .invite-row {
+    grid-template-columns: auto minmax(0, 1fr);
   }
 }
 </style>
