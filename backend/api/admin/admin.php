@@ -6,7 +6,7 @@ function mdAdminRequireOperator(): ApiSession {
     $auth->fetchSessionData();
     mdAuthEnsureClientMetadata($auth);
 
-    if (!canUserCreateCompany($auth->getLogin())) {
+    if (!canUserCreateCompany($auth->getLogin(), $auth)) {
         throw new ApiError('PERMISSION_DENIED', 'Keine Betreiber-Berechtigung fuer das Admin-Panel');
     }
 
@@ -45,7 +45,7 @@ function mdAdminRequireHubAccess(): array {
     $auth->fetchSessionData();
     mdAdminEnsureSchema($auth);
 
-    $isOperator = canUserCreateCompany($auth->getLogin());
+    $isOperator = canUserCreateCompany($auth->getLogin(), $auth);
     $canManageCurrentCompany = $isOperator || $auth->checkPermissions(['admin'], false);
 
     if (!$canManageCurrentCompany) {

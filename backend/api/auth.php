@@ -7,9 +7,28 @@
  * @param string $login Login-Name des Benutzers
  * @return bool
  */
-function canUserCreateCompany($login) {
+function canUserCreateCompany($login, $auth = null) {
     $adminUsers = array_map('trim', explode(',', COMPANY_ADMIN_USERS));
-    return in_array($login, $adminUsers, true);
+    if (in_array($login, $adminUsers, true)) {
+        return true;
+    }
+
+    if ($auth instanceof ApiSession && $auth->getClientId()) {
+        try {
+            mdAuthEnsureClientMetadata($auth);
+            $client = $auth->getOne(
+                'SELECT is_system FROM auth.clients WHERE id = :client_id',
+                [':client_id' => intval($auth->getClientId())]
+            );
+            if (!empty($client['is_system']) && $auth->checkPermissions(['admin'], false)) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    return false;
 }
 
 function mdAuthNormalizeCompanyNumber($value) {
@@ -324,7 +343,7 @@ function login($data) {
             "auth_groups" => $auth->fetchClientGroups(),
             "is_demo" => defined('DEMO_MODE') && DEMO_MODE,
             "demo_inactivity_minutes" => defined('DEMO_INACTIVITY_MINUTES') ? DEMO_INACTIVITY_MINUTES : 20,
-            "can_create_company" => canUserCreateCompany($context['login'])
+            "can_create_company" => canUserCreateCompany($context['login'], $auth)
         );
     } else {
         throw new ApiError("WRONG_PASSWORD", "Falsches Passwort");
@@ -421,7 +440,7 @@ function restoreSession($data) {
         "auth_groups" => $session->fetchClientGroups(),
         "is_demo" => defined('DEMO_MODE') && DEMO_MODE,
         "demo_inactivity_minutes" => defined('DEMO_INACTIVITY_MINUTES') ? DEMO_INACTIVITY_MINUTES : 20,
-        "can_create_company" => canUserCreateCompany($context['login'])
+        "can_create_company" => canUserCreateCompany($context['login'], $session)
     );
 
     require __DIR__ . '/customer_vendor/customer_vendor.php';
@@ -474,7 +493,7 @@ function switchClient($data) {
     ]);
 
     if (empty($clientName)) {
-        if (!canUserCreateCompany($context['login'])) {
+        if (!canUserCreateCompany($context['login'], $auth)) {
             throw new ApiError('USER_NOT_ASSIGNED_TO_CLIENT', 'Benutzer nicht der Firma zugeordnet');
         }
 
@@ -518,7 +537,7 @@ function switchClient($data) {
         'auth_groups' => $auth->fetchClientGroups(),
         'is_demo' => defined('DEMO_MODE') && DEMO_MODE,
         'demo_inactivity_minutes' => defined('DEMO_INACTIVITY_MINUTES') ? DEMO_INACTIVITY_MINUTES : 20,
-        'can_create_company' => canUserCreateCompany($context['login'])
+        'can_create_company' => canUserCreateCompany($context['login'], $auth)
     );
 
     require __DIR__ . '/customer_vendor/customer_vendor.php';

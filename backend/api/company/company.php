@@ -32,8 +32,7 @@ function createCompany($data) {
     mdAuthEnsureClientMetadata($auth);
     $login = $auth->getLogin();
 
-    $adminUsers = array_map('trim', explode(',', COMPANY_ADMIN_USERS));
-    if (!in_array($login, $adminUsers, true)) {
+    if (!canUserCreateCompany($login, $auth)) {
         resultInfo(false, 'PERMISSION_DENIED', 'Keine Berechtigung zum Anlegen von Firmen');
         return;
     }

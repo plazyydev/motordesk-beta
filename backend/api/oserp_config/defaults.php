@@ -34,7 +34,7 @@ function mdConfigCurrentClientLockState(ApiSession $auth): array {
     return [
         'locked' => !empty($client['master_data_locked']),
         'verification_status' => $client['verification_status'] ?? 'pending',
-        'operator' => canUserCreateCompany($auth->getLogin()),
+        'operator' => canUserCreateCompany($auth->getLogin(), $auth),
     ];
 }
 
