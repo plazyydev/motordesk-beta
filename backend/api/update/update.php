@@ -47,8 +47,8 @@ function updateSchema($data) {
     $updateAuthDb = isset($data['auth_db']) ? $data['auth_db'] === true : true;
     $updateCompanyDb = isset($data['company_db']) ? $data['company_db'] === true : true;
 
-    // Sammle alle zu verarbeitenden Verzeichnisse (crm ist immer dabei)
-    $featureDirs = ['crm'];
+    // MotorDesk-Kundenpanels benoetigen CRM und LxCars/Fahrzeuge immer.
+    $featureDirs = ['crm', 'lxcars'];
 
     // Aktives Feature aus der Company-Datenbank lesen
     if ($updateCompanyDb) {
@@ -59,7 +59,9 @@ function updateSchema($data) {
             if ($featureResult && !empty($featureResult['value'])) {
                 $feature = trim($featureResult['value']);
                 if (preg_match('/^[a-zA-Z0-9_-]+$/', $feature)) {
-                    $featureDirs[] = $feature;
+                    if (!in_array($feature, $featureDirs, true)) {
+                        $featureDirs[] = $feature;
+                    }
                     writeLog("Aktives Feature aus DB geladen: $feature", true, DLOG_INF);
                 } else {
                     writeLog("Ungültiger Feature-Name in defaults_oserp: $feature", true, DLOG_WRN);
@@ -1261,7 +1263,7 @@ function updateAllDatabases($data) {
             'dbname' => $client['dbname'],
             'backup' => null,
             'update' => null,
-            'features' => ['crm']
+            'features' => ['crm', 'lxcars']
         ];
 
         $clientCredentials = [
@@ -1295,7 +1297,7 @@ function updateAllDatabases($data) {
             $clientDb = new ApiDatabase($clientPdo);
 
             // Features aus dieser Client-DB lesen
-            $featureDirs = ['crm'];
+            $featureDirs = ['crm', 'lxcars'];
             try {
                 $featureResult = $clientDb->getOne(
                     "SELECT value FROM defaults_oserp WHERE key = 'features'",
@@ -1304,7 +1306,9 @@ function updateAllDatabases($data) {
                 if ($featureResult && !empty($featureResult['value'])) {
                     $feature = trim($featureResult['value']);
                     if (preg_match('/^[a-zA-Z0-9_-]+$/', $feature)) {
-                        $featureDirs[] = $feature;
+                        if (!in_array($feature, $featureDirs, true)) {
+                            $featureDirs[] = $feature;
+                        }
                         writeLog("Feature '$feature' fuer Mandant '{$client['name']}' geladen", true, DLOG_INF);
                     }
                 }

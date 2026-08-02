@@ -62,6 +62,8 @@ function getCV($data, $withConfig = []) {
                             'features', (
                                 SELECT json_agg(feature) FROM (
                                     SELECT value FROM defaults_oserp WHERE key = 'features'
+                                    UNION
+                                    SELECT 'lxcars' AS value WHERE to_regclass('public.cars_lxcars') IS NOT NULL
                                 ) AS feature
                             ),
                             'defaults', (
@@ -113,9 +115,16 @@ function getCV($data, $withConfig = []) {
         return;
     }
 
-    $features = $mandant->fetchAll("SELECT value FROM defaults_oserp WHERE key = 'features'");
-    $feature = $features[0]['value'] ?? null;
-    $lxCars = str_contains($feature, 'lxcars');
+    $features = $mandant->fetchAll("
+        SELECT value FROM defaults_oserp WHERE key = 'features'
+        UNION
+        SELECT 'lxcars' AS value WHERE to_regclass('public.cars_lxcars') IS NOT NULL
+    ");
+    $lxCars = array_reduce(
+        $features,
+        fn($active, $row) => $active || str_contains((string)($row['value'] ?? ''), 'lxcars'),
+        false
+    );
 
     // Vendor vs. Customer: unterschiedliche Tabellen/FK/record_types
     $isVendor = ($cvSrc === 'V');
@@ -193,6 +202,8 @@ function getCV($data, $withConfig = []) {
                                     SELECT value
                                     FROM defaults_oserp
                                     WHERE key = 'features'
+                                    UNION
+                                    SELECT 'lxcars' AS value WHERE to_regclass('public.cars_lxcars') IS NOT NULL
                                 ) AS feature
                             ),
                             'defaults', (

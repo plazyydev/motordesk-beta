@@ -92,7 +92,11 @@ function getCompanyConfig($data) {
                 SELECT json_build_object(
                     'features', (
                         SELECT json_agg(feature)
-                        FROM (SELECT value FROM defaults_oserp WHERE key = 'features') AS feature
+                        FROM (
+                            SELECT value FROM defaults_oserp WHERE key = 'features'
+                            UNION
+                            SELECT 'lxcars' AS value WHERE to_regclass('public.cars_lxcars') IS NOT NULL
+                        ) AS feature
                     ),
                     'defaults', (
                         SELECT row_to_json(config)

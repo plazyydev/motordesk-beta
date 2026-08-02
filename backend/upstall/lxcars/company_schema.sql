@@ -386,6 +386,8 @@ CREATE INDEX IF NOT EXISTS idx_oe_instructions_lxcars_done_at ON oe_instructions
 UPDATE oe_instructions_lxcars SET done_at = NOW() WHERE done = true AND done_at IS NULL;
 
 -- Nummernkreis in defaults_oserp initialisieren
+INSERT INTO defaults_oserp (key, value) VALUES ('features', 'lxcars')
+ON CONFLICT (key) DO UPDATE SET value = 'lxcars';
 INSERT INTO defaults_oserp (key, value) VALUES ('instructionnumber', '100') ON CONFLICT (key) DO NOTHING;
 INSERT INTO defaults_oserp (key, value) VALUES ('instructionprefix', '') ON CONFLICT (key) DO NOTHING;
 INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_order_statuses', 'Angenommen, In Arbeit, Warte auf Teile, Fertig, Abgeholt') ON CONFLICT (key) DO NOTHING;

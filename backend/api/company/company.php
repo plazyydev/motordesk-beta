@@ -151,6 +151,11 @@ function createCompany($data) {
         require_once __DIR__.'/../update/update.php';
 
         $crmSchemaFile = __DIR__ . '/../../upstall/crm/company_schema.sql';
+        $lxcarsSchemaFile = __DIR__ . '/../../upstall/lxcars/company_schema.sql';
+        $schemaFiles = [$crmSchemaFile];
+        if (file_exists($lxcarsSchemaFile)) {
+            $schemaFiles[] = $lxcarsSchemaFile;
+        }
         $csvFiles = ['auth' => [], 'company' => []];
 
         $crmCsvDir = __DIR__ . '/../../upstall/crm/company_data/';
@@ -161,7 +166,15 @@ function createCompany($data) {
             }
         }
 
-        $upstallResult = updateDatabaseSchema([$crmSchemaFile], $csvFiles, false, $newDb);
+        $lxcarsCsvDir = __DIR__ . '/../../upstall/lxcars/company_data/';
+        if (is_dir($lxcarsCsvDir)) {
+            $csvFilesFound = glob($lxcarsCsvDir . '*.csv');
+            foreach ($csvFilesFound as $csvFile) {
+                $csvFiles['company'][] = $csvFile;
+            }
+        }
+
+        $upstallResult = updateDatabaseSchema($schemaFiles, $csvFiles, false, $newDb);
         if (!$upstallResult['success']) {
             writeLog("CRM-Upstall Warnungen für '$dbName': " . implode(', ', $upstallResult['errors']), true, DLOG_WRN);
         }
