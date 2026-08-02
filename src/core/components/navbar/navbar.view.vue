@@ -1,44 +1,41 @@
 <!-- src/core/components/navbar/navbar.view.vue -->
 <template>
-  <v-app-bar color="grey-lighten-4" elevation="1" density="comfortable">
+  <v-app-bar class="motordesk-navbar" elevation="0" density="comfortable">
     <!-- Weroni — KI-Bürokauffrau (ganz links) -->
     <v-btn
       v-if="weroniEnabled"
       icon
       variant="text"
       :title="$t('weroni.tooltip')"
-      :class="['ms-2', { 'weroni-blink': weroniPending }]"
+      :class="['ms-1', { 'weroni-blink': weroniPending }]"
       @click="weroni.togglePanel()"
     >
       <img :src="weroniIcon" width="24" height="24" alt="Weroni" style="border-radius: 50%;">
       <v-badge v-if="weroniPending" :content="weroni.pendingQuestionCount" color="error" floating offset-x="-4" offset-y="-4" />
     </v-btn>
 
-    <v-btn
-      icon
-      variant="text"
-      color="primary"
-      @click="openInNewTab"
-      :title="$t('NavbarView.newTabTooltip')"
-      class="ms-2"
-    >
-      <v-icon>mdi-open-in-new</v-icon>
-    </v-btn>
-    <v-btn
-      icon
-      variant="text"
-      color="primary"
-      @click="openMenu"
-      :title="$t('NavbarView.openInNewTabTooltip')"
-      class="ms-2"
-    >
-      <v-icon>mdi-widgets</v-icon>
-    </v-btn>
-    <router-link to="/" class="text-decoration-none text-primary me-1"><v-icon>mdi-home</v-icon></router-link>
+    <router-link :to="{ name: 'startup' }" class="motordesk-brand ms-2" :title="brandTitle">
+      <img
+        v-if="companyLogo"
+        :src="companyLogo"
+        class="motordesk-brand__logo"
+        :alt="brandTitle"
+      >
+      <template v-else>
+        <span class="motordesk-brand__mark">MD</span>
+        <span class="motordesk-brand__name">MotorDesk</span>
+      </template>
+    </router-link>
 
-    <v-toolbar-title class="text-h6">
-      <router-link to="/" class="text-decoration-none text-primary">{{ appTitle }}</router-link>
-    </v-toolbar-title>
+    <v-chip
+      v-if="featureTitle"
+      size="small"
+      variant="tonal"
+      color="primary"
+      class="motordesk-feature-chip ms-2"
+    >
+      {{ featureTitle }}
+    </v-chip>
 
     <!-- LxCars Schnellzugriff -->
     <v-btn
@@ -50,6 +47,28 @@
       :title="$t('CarView.orderSearchTooltip')"
     >
       <v-icon>mdi-clipboard-search-outline</v-icon>
+    </v-btn>
+    <v-btn
+      v-if="oserpData.isLxCars()"
+      icon
+      variant="text"
+      color="primary"
+      :to="{ name: 'car-list' }"
+      :title="$t('CarView.manageCars')"
+      class="motordesk-quick-action"
+    >
+      <v-icon>mdi-car-multiple</v-icon>
+    </v-btn>
+    <v-btn
+      v-if="oserpData.isLxCars()"
+      icon
+      variant="text"
+      color="primary"
+      :to="{ name: 'fahrzeug-neu' }"
+      :title="$t('CarView.newCar')"
+      class="motordesk-quick-action"
+    >
+      <v-icon>mdi-car-plus</v-icon>
     </v-btn>
     <v-btn
       icon
@@ -74,12 +93,12 @@
       icon
       variant="text"
       color="primary"
-      :to="$t('CarView.routes.newCarFromScan')"
+      :to="{ name: 'car-new-from-scan' }"
       :title="$t('CarView.scanTooltip')"
-      style="position: relative"
+      class="motordesk-scan-action"
     >
       <v-icon size="22">mdi-car-side</v-icon>
-      <v-icon size="11" style="position: absolute; bottom: 6px; right: 6px;" color="primary">mdi-camera</v-icon>
+      <v-icon size="11" class="motordesk-scan-action__camera" color="primary">mdi-camera</v-icon>
     </v-btn>
 
     <!-- Responsive Menüs -->
@@ -93,14 +112,9 @@
     <!-- Firmenlogo oder Firmenname — Klick öffnet Firmenliste -->
     <v-menu v-model="clientMenuOpen" location="bottom end" :close-on-content-click="true" open-on-hover>
       <template #activator="{ props: menuProps }">
-        <div v-bind="menuProps" class="d-flex align-center cursor-pointer">
-          <img
-            v-if="companyLogo"
-            :src="companyLogo"
-            class="company-logo me-2"
-            :title="t('NavbarView.switchClient')"
-          >
-          <span v-else class="text-body-2 font-weight-medium text-primary me-1">{{ oserpData.session.client }}</span>
+        <div v-bind="menuProps" class="motordesk-client-switch cursor-pointer" :title="t('NavbarView.switchClient')">
+          <v-icon size="18" class="me-1">mdi-domain</v-icon>
+          <span class="text-body-2 font-weight-medium me-1">{{ oserpData.session.client }}</span>
           <v-icon v-if="clientList.length > 1" size="x-small" class="me-1">mdi-chevron-down</v-icon>
         </div>
       </template>
@@ -123,6 +137,11 @@
         >
           <template #prepend><v-icon size="small" class="me-2">mdi-plus-circle-outline</v-icon></template>
           <v-list-item-title class="text-body-2">{{ t('NavbarView.newCompany') }}</v-list-item-title>
+        </v-list-item>
+        <v-divider class="my-1" />
+        <v-list-item href="/admin.html" @click="clientMenuOpen = false">
+          <template #prepend><v-icon size="small" class="me-2">mdi-shield-account</v-icon></template>
+          <v-list-item-title class="text-body-2">Admin-Panel</v-list-item-title>
         </v-list-item>
         <v-divider class="my-1" />
         <v-list-item :to="t('routes.clientConfig')" @click="clientMenuOpen = false">
@@ -153,8 +172,21 @@
     <v-btn
       icon
       variant="text"
+      color="primary"
+      @click="openInNewTab"
+      :title="$t('NavbarView.newTabTooltip')"
+      class="motordesk-nav-icon"
+    >
+      <v-icon>mdi-open-in-new</v-icon>
+    </v-btn>
+
+    <v-btn
+      icon
+      variant="text"
+      color="primary"
       :to="{ name: 'camera' }"
       :title="t('CameraView.title')"
+      class="motordesk-nav-icon"
     >
       <v-icon>mdi-cctv</v-icon>
     </v-btn>
@@ -182,6 +214,13 @@
         <v-card-text class="pb-2">
           <div class="text-subtitle-2 font-weight-bold">{{ oserpData.session.user }}</div>
           <div class="text-caption text-medium-emphasis">{{ oserpData.session.client }}</div>
+        </v-card-text>
+        <v-divider />
+        <v-card-text class="py-3">
+          <div class="motordesk-theme-row">
+            <span class="text-caption text-medium-emphasis">Darstellung</span>
+            <ThemeSwitcher />
+          </div>
         </v-card-text>
         <v-divider />
         <v-list density="compact">
@@ -273,7 +312,7 @@
   <MessagesView :messages="displayMessages" />
 
   <!-- Über-Dialog -->
-  <AboutDialog v-model="showAboutDialog" :app-title="appTitle" />
+  <AboutDialog v-model="showAboutDialog" app-title="MotorDesk" />
 
   <!-- Neue Firma anlegen -->
   <v-dialog v-model="showCreateCompanyDialog" max-width="500" persistent>
@@ -342,6 +381,7 @@ import GlobalSearchComponent from '@/core/components/navbar/global-search.compon
 import InfoBarComponent from '@/core/components/navbar/info-bar.component.vue'
 import { sseConnected } from '@/core/composables/useInfoBar'
 import AboutDialog from '@/core/components/about/about.dialog.vue'
+import ThemeSwitcher from '@/core/components/app-shell/theme-switcher.vue'
 import weroniIcon from '@/assets/weroni/weroni-24.png'
 import WeroniPanel from '@/features/weroni/components/weroni-panel.vue'
 import { weroniStore } from '@/features/weroni/stores/weroni.store.js'
@@ -356,6 +396,7 @@ export default {
     GlobalSearchComponent,
     InfoBarComponent,
     AboutDialog,
+    ThemeSwitcher,
     WeroniPanel
   },
   props: {
@@ -383,15 +424,16 @@ export default {
       lxcars: 'LxCars'
     }
 
-    const appTitle = computed(() => {
+    const featureTitle = computed(() => {
       const active = oserpData.features.find(f => {
         const key = typeof f === 'object' ? f.value : f
         return featureDisplayNames[key]
       })
-      if (!active) return 'OpensourceERP'
+      if (!active) return ''
       const key = typeof active === 'object' ? active.value : active
       return featureDisplayNames[key]
     })
+    const appTitle = computed(() => featureTitle.value || 'MotorDesk')
 
     // Demo-Modus
     const isDemo = computed(() => oserpData.session.is_demo)
@@ -518,6 +560,7 @@ export default {
 
     // Firmenlogo (nur Anzeige, Upload jetzt in Firmenkonfiguration)
     const companyLogo = computed(() => oserpData.getBrandingConfig().companyLogo || null)
+    const brandTitle = computed(() => companyLogo.value ? oserpData.session.client : 'MotorDesk')
 
     const logout = async () => {
       appReady.value = false
@@ -528,10 +571,6 @@ export default {
       }
       await router.push('/login')
       appReady.value = true
-    }
-
-    const openMenu = () => {
-      router.push(t('routes.mainmenu'))
     }
 
     const openInNewTab = () => {
@@ -570,9 +609,9 @@ export default {
 
       if (!oserpData.customer_vendor) {
         list.push({
-          title: 'Willkommen zu OpensourceERP!',
+          title: 'Willkommen bei MotorDesk!',
           description:
-            'Es scheint, als hätten Sie noch keine Kunden angelegt. Beginnen Sie damit, Ihren ersten Kunden zu erstellen, um die Funktionen von OpenSourceERP zu erkunden.',
+            'Es scheint, als haetten Sie noch keine Kunden angelegt. Beginnen Sie damit, Ihren ersten Kunden zu erstellen, um MotorDesk zu erkunden.',
           type: 'info',
         })
       }
@@ -584,11 +623,12 @@ export default {
       oserpData,
       lgAndUp,
       appTitle,
+      featureTitle,
+      brandTitle,
       isDemo,
       showDemoWarning,
       demoRemainingSeconds,
       logout,
-      openMenu,
       openInNewTab,
       t,
       cvSrc,
@@ -626,6 +666,103 @@ export default {
 </script>
 
 <style scoped>
+.motordesk-navbar {
+  background: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface));
+  border-bottom: 1px solid var(--md-color-line);
+}
+
+.motordesk-brand {
+  min-width: 0;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  color: var(--md-color-ink);
+  text-decoration: none;
+  border-radius: var(--md-radius-md);
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.motordesk-brand:hover {
+  background: var(--md-color-brand-soft);
+}
+
+.motordesk-brand__mark {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
+  font-weight: 800;
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
+.motordesk-brand__name {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.motordesk-brand__logo {
+  height: 34px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.motordesk-feature-chip {
+  flex: 0 0 auto;
+}
+
+.motordesk-quick-action,
+.motordesk-nav-icon,
+.motordesk-scan-action {
+  border-radius: var(--md-radius-md);
+}
+
+.motordesk-scan-action {
+  position: relative;
+}
+
+.motordesk-scan-action__camera {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+}
+
+.motordesk-client-switch {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  max-width: 220px;
+  padding: 0 10px;
+  color: var(--md-color-ink);
+  border: 1px solid var(--md-color-line);
+  border-radius: var(--md-radius-md);
+  background: var(--md-color-surface);
+}
+
+.motordesk-client-switch span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.motordesk-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -635,12 +772,5 @@ export default {
 @keyframes weroni-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
-}
-.company-logo {
-  height: 36px;
-  width: auto;
-  max-width: 180px;
-  object-fit: contain;
-  border-radius: 4px;
 }
 </style>

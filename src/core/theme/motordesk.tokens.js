@@ -70,7 +70,7 @@ export const motordeskVuetifyThemes = {
     },
 }
 
-export function normalizeThemeMode(value, fallback = 'system') {
+export function normalizeThemeMode(value, fallback = 'light') {
     const normalized = String(value || '').toLowerCase()
     if (['light', 'dark', 'system'].includes(normalized)) return normalized
     return fallback

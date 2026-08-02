@@ -178,7 +178,7 @@ export const oserpStore = defineStore('oserpStore', () => {
             companyLogoFileId: getClientDefaultValue('company_logo_file_id', null),
             companyLogoPosition: getClientDefaultValue('company_logo_position', 'right'),
             companyAccentColor: getClientDefaultValue('company_accent_color', null),
-            companyDefaultTheme: getClientDefaultValue('company_default_theme', 'system'),
+            companyDefaultTheme: getClientDefaultValue('company_default_theme', 'light'),
             navigationDensity: getClientDefaultValue('navigation_density', 'comfortable'),
         };
     }

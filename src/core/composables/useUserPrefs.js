@@ -31,7 +31,7 @@ export function useUserPrefs() {
             return boolFromConfig(legacyDarkMode) ? 'dark' : 'light'
         }
 
-        const companyDefault = oserp.getClientDefaultValue('company_default_theme', 'system')
+        const companyDefault = oserp.getClientDefaultValue('company_default_theme', 'light')
         return normalizeThemeMode(companyDefault)
     }
 

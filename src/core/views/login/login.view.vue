@@ -1,7 +1,10 @@
 <template>
-  <v-app-bar color="grey-lighten-4" elevation="1" density="comfortable" aria-label="OpensourceERP Theme Navbar">
+  <v-app-bar class="motordesk-login-bar" elevation="0" density="comfortable" aria-label="MotorDesk Navbar">
     <v-toolbar-title class="text-h6">
-      <router-link to="/" class="text-decoration-none text-primary">OpensourceERP</router-link>
+      <router-link to="/" class="motordesk-login-brand">
+        <span class="motordesk-login-brand__mark">MD</span>
+        <span>MotorDesk</span>
+      </router-link>
     </v-toolbar-title>
   </v-app-bar>
   <v-container>
@@ -227,6 +230,34 @@ export default {
 </script>
 
 <style scoped>
-.text-primary { color: var(--v-theme-primary) !important; }
+.motordesk-login-bar {
+  background: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-on-surface));
+  border-bottom: 1px solid var(--md-color-line);
+}
+
+.motordesk-login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--md-color-ink);
+  text-decoration: none;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.motordesk-login-brand__mark {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .update-trigger { cursor: default; user-select: none; }
 </style>

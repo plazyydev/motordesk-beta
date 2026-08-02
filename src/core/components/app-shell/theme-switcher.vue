@@ -37,7 +37,7 @@ const props = defineProps({
 void props
 
 const oserp = oserpStore()
-const storedMode = computed(() => normalizeThemeMode(oserp.getConfigValue('theme_mode', 'system')))
+const storedMode = computed(() => normalizeThemeMode(oserp.getConfigValue('theme_mode', 'light')))
 const mode = ref(storedMode.value)
 
 watch(storedMode, value => {

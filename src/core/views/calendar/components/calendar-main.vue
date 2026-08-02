@@ -70,8 +70,10 @@ function applyKWColor(kw) {
     const btn = calendarRef.value?.getApi()?.el?.querySelector('.fc-calendarWeek-button')
     if (!btn) return
     const isEven = kw % 2 === 0
-    btn.style.color = isEven ? '#1565c0' : '#2e7d32'
-    btn.style.backgroundColor = isEven ? '#e3f2fd' : '#e8f5e9'
+    btn.style.color = ''
+    btn.style.backgroundColor = ''
+    btn.classList.toggle('fc-calendarWeek-button--even', isEven)
+    btn.classList.toggle('fc-calendarWeek-button--odd', !isEven)
 }
 
 const mergedCustomButtons = computed(() => ({
@@ -890,6 +892,167 @@ defineExpose({
     border-radius: 3px;
     transition: width 0.5s ease;
     min-width: 4px;
+}
+
+/* Motordesk theme overrides */
+.calendar-wrapper {
+    background: var(--md-color-surface);
+    border: 1px solid var(--md-color-line);
+    border-radius: 8px;
+}
+
+.fc {
+    --fc-border-color: var(--md-color-line);
+    --fc-neutral-bg-color: var(--md-color-canvas);
+    --fc-page-bg-color: var(--md-color-surface);
+    --fc-today-bg-color: rgba(var(--v-theme-primary), 0.10);
+    --fc-now-indicator-color: rgb(var(--v-theme-error));
+    color: var(--md-color-ink);
+}
+
+.fc .fc-toolbar,
+.fc .fc-view-harness,
+.fc .fc-popover,
+.fc .fc-list {
+    background: var(--md-color-surface);
+    color: var(--md-color-ink);
+    border: 1px solid var(--md-color-line);
+    border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.fc .fc-toolbar {
+    padding: 14px 16px;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+    border-color: var(--md-color-line);
+}
+
+.fc .fc-toolbar-title,
+.fc .fc-clock-button,
+.fc .fc-daygrid-day-number,
+.fc .fc-timegrid-slot-label,
+.fc .fc-list-event-time,
+.fc .fc-list-event-title,
+.fc .fc-col-header-cell,
+.fc .fc-list-day-text,
+.fc .fc-list-day-side,
+.fc .fc-popover-title,
+.fc .fc-more-popover-misc {
+    color: var(--md-color-ink) !important;
+}
+
+.fc .fc-toolbar-title {
+    letter-spacing: 0;
+}
+
+.fc .fc-col-header,
+.fc .fc-list-day-cushion,
+.fc .fc-popover-header {
+    background: var(--md-color-canvas);
+    color: var(--md-color-ink);
+    border-color: var(--md-color-line);
+}
+
+.fc .fc-button {
+    border-radius: 8px;
+    letter-spacing: 0;
+}
+
+.fc .fc-button-primary {
+    background: var(--md-color-canvas);
+    color: var(--md-color-ink);
+    border: 1px solid var(--md-color-line);
+}
+
+.fc .fc-button-primary:hover,
+.fc .fc-daygrid-day:hover,
+.fc .fc-list-event:hover td {
+    background: var(--md-color-brand-soft);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-today-button {
+    background: rgb(var(--v-theme-primary)) !important;
+    color: rgb(var(--v-theme-on-primary)) !important;
+    border-color: rgb(var(--v-theme-primary)) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number {
+    color: var(--md-color-muted) !important;
+    opacity: 0.65;
+}
+
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    background: rgb(var(--v-theme-primary));
+    color: rgb(var(--v-theme-on-primary)) !important;
+}
+
+.fc .fc-day-sun,
+.fc .fc-non-business {
+    background-color: rgba(var(--v-theme-on-surface), 0.035);
+}
+
+.fc .fc-daygrid-more-link {
+    background: var(--md-color-brand-soft);
+    color: rgb(var(--v-theme-primary));
+}
+
+.fc .fc-event-holiday {
+    background-color: rgba(var(--v-theme-error), 0.12) !important;
+    border-color: rgba(var(--v-theme-error), 0.42) !important;
+    color: rgb(var(--v-theme-error)) !important;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+    border-color: rgb(var(--v-theme-error));
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: rgb(var(--v-theme-error));
+}
+
+.fc .fc-calendarWeek-button--even {
+    color: rgb(var(--v-theme-primary)) !important;
+    background: rgba(var(--v-theme-primary), 0.12) !important;
+}
+
+.fc .fc-calendarWeek-button--odd {
+    color: rgb(var(--v-theme-success)) !important;
+    background: rgba(var(--v-theme-success), 0.12) !important;
+}
+
+.fc-wl-wrap {
+    background: rgba(var(--v-theme-on-surface), 0.06);
+}
+
+.fc-wl-hours {
+    color: var(--md-color-ink);
+    letter-spacing: 0;
+}
+
+.fc-wl-cap {
+    color: var(--md-color-muted);
+}
+
+.fc-wl-orders {
+    color: var(--md-color-muted);
+}
+
+.fc-wl-track {
+    background: rgba(var(--v-theme-on-surface), 0.14);
+}
+
+.v-theme--dark .calendar-wrapper,
+.v-theme--dark .fc .fc-toolbar,
+.v-theme--dark .fc .fc-view-harness,
+.v-theme--dark .fc .fc-popover,
+.v-theme--dark .fc .fc-list {
+    box-shadow: none;
 }
 
 </style>
