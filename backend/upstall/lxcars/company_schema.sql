@@ -836,9 +836,23 @@ END $$;
 
 -- Ankauf & Kalkulation (Fuhrpark-Verkauf)
 -- Pro Fahrzeug ein Ankaufsdatensatz; alle Kosten- und Preisberechnungen liegen in car_purchases_calc().
+
+-- Nummernkreise: Fahrzeugnummer (einmal pro Fahrzeug) und Angebotsnummer (pro erzeugtem Exposé)
+CREATE SEQUENCE IF NOT EXISTS car_vehicle_number_seq;
+CREATE SEQUENCE IF NOT EXISTS car_expose_number_seq;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_vehicle_number_prefix', 'FZ-') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_expose_number_prefix', 'AN-') ON CONFLICT (key) DO NOTHING;
+
+-- Naechste Nummer eines Nummernkreises: Praefix aus defaults_oserp + vierstelliger Zaehler
+CREATE OR REPLACE FUNCTION car_next_number(p_prefix_key text, p_sequence text) RETURNS text AS $$
+    SELECT COALESCE((SELECT value FROM defaults_oserp WHERE key = p_prefix_key), '')
+           || lpad(nextval(p_sequence::regclass)::text, 4, '0');
+$$ LANGUAGE sql;
+
 CREATE TABLE IF NOT EXISTS car_purchases (
     id                    INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     c_id                  INTEGER NOT NULL REFERENCES cars_lxcars(c_id) ON DELETE CASCADE,
+    vehicle_number        text,
     purchase_date         date DEFAULT current_date,
     seller                text,
     purchase_price        numeric(12,2) NOT NULL DEFAULT 0,
@@ -858,8 +872,17 @@ CREATE TABLE IF NOT EXISTS car_purchases (
     consumption_combined  numeric(5,2),
     efficiency_class      varchar(2),
     tag_equipment         text,
+    paint_code            text,
+    engine_code           text,
+    transmission          text,
+    previous_owners       integer,
+    doors                 integer,
+    seats                 integer,
+    accident_free         boolean,
+    description           text,
     created_at            timestamp NOT NULL DEFAULT now(),
     CONSTRAINT car_purchases_c_id_unique UNIQUE (c_id),
+    CONSTRAINT car_purchases_vehicle_number_unique UNIQUE (vehicle_number),
     CONSTRAINT car_purchases_status_check CHECK (status IN ('purchased', 'listed', 'reserved', 'sold')),
     CONSTRAINT car_purchases_efficiency_class_check CHECK (efficiency_class IN ('A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'))
 );
@@ -874,7 +897,18 @@ CREATE TABLE IF NOT EXISTS car_price_history (
 );
 CREATE INDEX IF NOT EXISTS idx_car_price_history_c_id ON car_price_history(c_id);
 
--- Liefert alle Ankaeufe inkl. berechneter Werte als ein JSON-Objekt
+-- Jedes erzeugte Exposé bekommt eine eigene, suchbare Angebotsnummer
+CREATE TABLE IF NOT EXISTS car_exposes (
+    id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    c_id          INTEGER NOT NULL REFERENCES cars_lxcars(c_id) ON DELETE CASCADE,
+    expose_number text NOT NULL,
+    asking_price  numeric(12,2),
+    created_at    timestamp NOT NULL DEFAULT now(),
+    CONSTRAINT car_exposes_expose_number_unique UNIQUE (expose_number)
+);
+CREATE INDEX IF NOT EXISTS idx_car_exposes_c_id ON car_exposes(c_id);
+
+-- Liefert alle Ankaeufe inkl. berechneter Werte als ein JSON-Objekt (Suche auch ueber Fahrzeug- und Angebotsnummer)
 CREATE OR REPLACE FUNCTION car_purchases_calc(p_search text DEFAULT '', p_status text DEFAULT '') RETURNS json AS $$
     SELECT json_build_object(
         'results', COALESCE(json_agg(r ORDER BY r.purchase_date DESC, r.id DESC), '[]'::json),
@@ -895,11 +929,13 @@ CREATE OR REPLACE FUNCTION car_purchases_calc(p_search text DEFAULT '', p_status
         FROM car_purchases p
         JOIN cars_lxcars c ON c.c_id = p.c_id
         WHERE (p_status = '' OR p.status = p_status)
-          AND (p_search = '' OR CONCAT_WS(' ', c.c_ln, c.c_mt, c.c_fin, p.seller) ILIKE '%' || p_search || '%')
+          AND (p_search = ''
+               OR CONCAT_WS(' ', c.c_ln, c.c_mt, c.c_fin, p.seller, p.vehicle_number) ILIKE '%' || p_search || '%'
+               OR EXISTS (SELECT 1 FROM car_exposes e WHERE e.c_id = p.c_id AND e.expose_number ILIKE '%' || p_search || '%'))
     ) r;
 $$ LANGUAGE sql STABLE;
 
--- Speichert (Upsert) einen Ankauf und protokolliert Aenderungen des Angebotspreises
+-- Speichert (Upsert) einen Ankauf, vergibt beim ersten Speichern die Fahrzeugnummer und protokolliert Preisaenderungen
 CREATE OR REPLACE FUNCTION car_purchase_save(p jsonb) RETURNS json AS $$
 DECLARE
     v_c_id integer := (p->>'c_id')::integer;
@@ -907,11 +943,13 @@ DECLARE
 BEGIN
     SELECT asking_price INTO v_old_price FROM car_purchases WHERE c_id = v_c_id;
 
-    INSERT INTO car_purchases (c_id, purchase_date, seller, purchase_price, costs_repair, costs_preparation,
-                               costs_transport, costs_other, desired_margin_percent, asking_price,
-                               sold_price, sold_date, status, note, fuel_type, power_kw, co2_g_km,
-                               consumption_combined, efficiency_class, tag_equipment)
+    INSERT INTO car_purchases (c_id, vehicle_number, purchase_date, seller, purchase_price, costs_repair,
+                               costs_preparation, costs_transport, costs_other, desired_margin_percent,
+                               asking_price, sold_price, sold_date, status, note, fuel_type, power_kw,
+                               co2_g_km, consumption_combined, efficiency_class, tag_equipment, paint_code,
+                               engine_code, transmission, previous_owners, doors, seats, accident_free, description)
     VALUES (v_c_id,
+            car_next_number('lxcars_vehicle_number_prefix', 'car_vehicle_number_seq'),
             COALESCE(NULLIF(p->>'purchase_date', '')::date, current_date),
             p->>'seller',
             COALESCE(NULLIF(p->>'purchase_price', '')::numeric, 0),
@@ -930,7 +968,15 @@ BEGIN
             NULLIF(p->>'co2_g_km', '')::integer,
             NULLIF(p->>'consumption_combined', '')::numeric,
             NULLIF(p->>'efficiency_class', ''),
-            NULLIF(p->>'tag_equipment', ''))
+            NULLIF(p->>'tag_equipment', ''),
+            NULLIF(p->>'paint_code', ''),
+            NULLIF(p->>'engine_code', ''),
+            NULLIF(p->>'transmission', ''),
+            NULLIF(p->>'previous_owners', '')::integer,
+            NULLIF(p->>'doors', '')::integer,
+            NULLIF(p->>'seats', '')::integer,
+            NULLIF(p->>'accident_free', '')::boolean,
+            NULLIF(p->>'description', ''))
     ON CONFLICT (c_id) DO UPDATE SET
         purchase_date = EXCLUDED.purchase_date,
         seller = EXCLUDED.seller,
@@ -950,7 +996,15 @@ BEGIN
         co2_g_km = EXCLUDED.co2_g_km,
         consumption_combined = EXCLUDED.consumption_combined,
         efficiency_class = EXCLUDED.efficiency_class,
-        tag_equipment = EXCLUDED.tag_equipment;
+        tag_equipment = EXCLUDED.tag_equipment,
+        paint_code = EXCLUDED.paint_code,
+        engine_code = EXCLUDED.engine_code,
+        transmission = EXCLUDED.transmission,
+        previous_owners = EXCLUDED.previous_owners,
+        doors = EXCLUDED.doors,
+        seats = EXCLUDED.seats,
+        accident_free = EXCLUDED.accident_free,
+        description = EXCLUDED.description;
 
     IF NULLIF(p->>'asking_price', '') IS NOT NULL
        AND v_old_price IS DISTINCT FROM (p->>'asking_price')::numeric THEN
@@ -961,11 +1015,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Liefert alle Daten fuer das Preisschild eines Fahrzeugs als ein JSON-Objekt
-CREATE OR REPLACE FUNCTION car_price_tag(p_c_id integer) RETURNS json AS $$
+-- Liefert alle Daten fuer Preisschild und Exposé eines Fahrzeugs als ein JSON-Objekt
+CREATE OR REPLACE FUNCTION car_document_data(p_c_id integer) RETURNS json AS $$
     SELECT json_build_object(
         'c_id', c.c_id,
+        'vehicle_number', p.vehicle_number,
         'c_ln', c.c_ln,
+        'c_fin', c.c_fin,
         'c_m', c.c_m,
         'c_mt', c.c_mt,
         'c_d', c.c_d,
@@ -978,9 +1034,33 @@ CREATE OR REPLACE FUNCTION car_price_tag(p_c_id integer) RETURNS json AS $$
         'co2_g_km', p.co2_g_km,
         'consumption_combined', p.consumption_combined,
         'efficiency_class', p.efficiency_class,
-        'tag_equipment', p.tag_equipment
+        'tag_equipment', p.tag_equipment,
+        'paint_code', p.paint_code,
+        'engine_code', COALESCE(p.engine_code, c.c_mkb),
+        'transmission', p.transmission,
+        'previous_owners', p.previous_owners,
+        'doors', p.doors,
+        'seats', p.seats,
+        'accident_free', p.accident_free,
+        'description', p.description
     )
     FROM cars_lxcars c
     JOIN car_purchases p ON p.c_id = c.c_id
     WHERE c.c_id = p_c_id;
 $$ LANGUAGE sql STABLE;
+
+-- Erzeugt ein Exposé: vergibt eine neue Angebotsnummer und liefert sie zusammen mit den Fahrzeugdaten
+CREATE OR REPLACE FUNCTION car_expose_create(p_c_id integer) RETURNS json AS $$
+DECLARE
+    v_data json := car_document_data(p_c_id);
+    v_number text;
+BEGIN
+    IF v_data IS NULL THEN
+        RETURN NULL;
+    END IF;
+    v_number := car_next_number('lxcars_expose_number_prefix', 'car_expose_number_seq');
+    INSERT INTO car_exposes (c_id, expose_number, asking_price)
+    VALUES (p_c_id, v_number, (v_data->>'asking_price')::numeric);
+    RETURN (v_data::jsonb || jsonb_build_object('expose_number', v_number, 'created_at', now()))::json;
+END;
+$$ LANGUAGE plpgsql;

@@ -1021,6 +1021,7 @@
                                 <th>{{ t('CarEditView.kba.leistung') }}</th>
                                 <th>{{ t('CarEditView.kba.kraftstoff') }}</th>
                                 <th>{{ t('CarEditView.kba.d2') }}</th>
+                                <th>{{ t('CarEditView.kba.datum') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1037,6 +1038,7 @@
                                 <td>{{ row.leistung }}</td>
                                 <td>{{ row.kraftstoff }}</td>
                                 <td>{{ row.d2 }}</td>
+                                <td>{{ row.datum }}</td>
                             </tr>
                         </tbody>
                     </v-table>

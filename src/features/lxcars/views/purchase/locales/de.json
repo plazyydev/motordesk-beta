@@ -31,7 +31,8 @@
             "asking_price": "Angebotspreis",
             "profit": "Gewinn",
             "days_in_stock": "Standzeit",
-            "status": "Status"
+            "status": "Status",
+            "vehicle_number": "Fahrzeugnr."
         },
         "days": "{n} Tage",
         "dialog": {
@@ -55,7 +56,8 @@
             "cancel": "Abbrechen",
             "save": "Speichern",
             "price_tag_section": "Preisschild",
-            "tag_equipment": "Ausstattung (eine Zeile pro Punkt)"
+            "tag_equipment": "Ausstattung (eine Zeile pro Punkt)",
+            "details_section": "Fahrzeugdetails (für Preisschild und Exposé)"
         }
     }
 }

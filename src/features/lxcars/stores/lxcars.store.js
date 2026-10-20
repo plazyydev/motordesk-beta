@@ -131,16 +131,31 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
     }
 
     /**
-     * Laedt die Preisschild-Daten eines Fahrzeugs
+     * Laedt die Dokumentdaten (Preisschild) eines Fahrzeugs inkl. Fahrzeugnummer
      *
      * @param {number} c_id - Fahrzeug-ID
-     * @return {Promise<Object>} car_price_tag
+     * @return {Promise<Object>} car_document_data
      */
-    async function loadCarPriceTag(c_id) {
-        const response = await axios.post('/api/lxcars/', { action: 'getCarPriceTag', c_id });
+    async function loadCarDocumentData(c_id) {
+        const response = await axios.post('/api/lxcars/', { action: 'getCarDocumentData', c_id });
 
         if (!response.data.success) {
-            throw new ApiError('ApiError', response.data.text, 'Error loading price tag: ' + response.data.text);
+            throw new ApiError('ApiError', response.data.text, 'Error loading car document data: ' + response.data.text);
+        }
+        return response.data.payload;
+    }
+
+    /**
+     * Erzeugt ein Exposé: vergibt eine neue Angebotsnummer und liefert sie mit den Fahrzeugdaten
+     *
+     * @param {number} c_id - Fahrzeug-ID
+     * @return {Promise<Object>} car_document_data inkl. expose_number
+     */
+    async function createCarExpose(c_id) {
+        const response = await axios.post('/api/lxcars/', { action: 'createCarExpose', c_id });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error creating expose: ' + response.data.text);
         }
         return response.data.payload;
     }
@@ -1349,7 +1364,8 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
         loadCar,
         loadCars,
         loadCarPurchases,
-        loadCarPriceTag,
+        loadCarDocumentData,
+        createCarExpose,
         saveCarPurchase,
         resolveKtype,
         getAagEngine,

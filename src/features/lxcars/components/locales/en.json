@@ -1,16 +1,49 @@
 {
     "PriceTag": {
+        "title": "Price tag",
+        "print": "Print",
         "price": "Price",
+        "vehicle_number": "Vehicle number",
+        "page": "Page {n} of {total}",
         "first_registration": "First registration",
         "mileage": "Mileage",
         "fuel": "Fuel",
         "power": "Power",
+        "transmission": "Transmission",
         "hu": "Inspection until",
+        "efficiency_title": "Fuel consumption and CO₂ emissions",
         "efficiency_class": "CO₂ class",
         "co2": "CO₂ emissions (combined)",
-        "consumption": "Consumption (combined)",
-        "disclaimer": "Fuel consumption and CO₂ emissions according to WLTP. Errors and prior sale excepted.",
-        "print": "Print",
-        "title": "Price tag"
+        "consumption": "Fuel consumption (combined)",
+        "disclaimer": "Fuel consumption and CO₂ emissions according to WLTP.",
+        "engine_code": "Engine code",
+        "paint": "Paint"
+    },
+    "Expose": {
+        "title": "Brochure",
+        "create": "Create brochure",
+        "expose_number": "Offer number",
+        "technical_data": "Technical data",
+        "equipment": "Equipment",
+        "description": "Description",
+        "yes": "Yes",
+        "no": "No",
+        "terms": "Errors and prior sale excepted. This offer is non-binding.",
+        "fields": {
+            "first_registration": "First registration",
+            "mileage": "Mileage",
+            "fuel": "Fuel",
+            "power": "Power",
+            "transmission": "Transmission",
+            "engine_code": "Engine code",
+            "c_color": "Colour",
+            "paint_code": "Paint code",
+            "doors": "Doors",
+            "seats": "Seats",
+            "previous_owners": "Previous owners",
+            "accident_free": "Accident-free",
+            "hu": "Inspection until",
+            "c_fin": "VIN"
+        }
     }
 }

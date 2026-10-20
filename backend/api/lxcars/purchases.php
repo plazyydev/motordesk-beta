@@ -43,14 +43,30 @@ function saveCarPurchase($data) {
 }
 
 /**
- * Laedt die Daten fuer das Preisschild eines Fahrzeugs
+ * Laedt die Daten fuer das Preisschild eines Fahrzeugs (inkl. Fahrzeugnummer)
  *
  * @param int $data['c_id'] Fahrzeug-ID
  * @testdata {"c_id": 1}
  */
-function getCarPriceTag($data) {
+function getCarDocumentData($data) {
     $db = DbhCompany::begin();
-    $row = $db->getOne("SELECT car_price_tag(:c_id) AS result", [':c_id' => intval($data['c_id'] ?? 0)]);
+    $row = $db->getOne("SELECT car_document_data(:c_id) AS result", [':c_id' => intval($data['c_id'] ?? 0)]);
+    if (empty($row['result'])) {
+        resultInfo(false, 'NOT_FOUND', 'Kein Ankauf zu diesem Fahrzeug');
+        return;
+    }
+    resultInfo(true, '', json_decode($row['result'], true));
+}
+
+/**
+ * Erzeugt ein Exposé mit neuer Angebotsnummer und liefert alle Fahrzeugdaten dafuer
+ *
+ * @param int $data['c_id'] Fahrzeug-ID
+ * @testdata {"c_id": 1}
+ */
+function createCarExpose($data) {
+    $db = DbhCompany::begin();
+    $row = $db->getOne("SELECT car_expose_create(:c_id) AS result", [':c_id' => intval($data['c_id'] ?? 0)]);
     if (empty($row['result'])) {
         resultInfo(false, 'NOT_FOUND', 'Kein Ankauf zu diesem Fahrzeug');
         return;

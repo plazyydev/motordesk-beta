@@ -67,6 +67,9 @@
                 class="zebra-table"
                 @click:row="(e, row) => openDialog(row.item)"
             >
+                <template #item.vehicle_number="{ item }">
+                    <span class="font-weight-medium text-no-wrap">{{ item.vehicle_number }}</span>
+                </template>
                 <template #item.c_mt="{ item }">
                     <span class="text-no-wrap">{{ item.c_mt || '-' }}</span>
                 </template>
@@ -82,8 +85,11 @@
                 </template>
                 <template #item.days_in_stock="{ item }">{{ $t('PurchaseView.days', { n: item.days_in_stock }) }}</template>
                 <template #item.actions="{ item }">
-                    <v-btn icon variant="text" size="small" :title="$t('PriceTag.title')" @click.stop="openPriceTag(item)">
+                    <v-btn icon variant="text" size="small" :title="$t('PriceTag.title')" @click.stop="openDocument(item, 'price_tag')">
                         <v-icon>mdi-tag-text-outline</v-icon>
+                    </v-btn>
+                    <v-btn icon variant="text" size="small" :title="$t('Expose.create')" @click.stop="openDocument(item, 'expose')">
+                        <v-icon>mdi-file-document-outline</v-icon>
                     </v-btn>
                 </template>
                 <template #item.status="{ item }">
@@ -179,6 +185,31 @@
                         <v-col cols="12">
                             <v-textarea v-model="form.tag_equipment" :label="$t('PurchaseView.dialog.tag_equipment')" rows="3" auto-grow variant="outlined" density="compact" />
                         </v-col>
+                        <v-col cols="12" class="text-subtitle-2">{{ $t('PurchaseView.dialog.details_section') }}</v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model="form.engine_code" :label="$t('Expose.fields.engine_code')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model="form.paint_code" :label="$t('Expose.fields.paint_code')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                            <v-text-field v-model="form.transmission" :label="$t('Expose.fields.transmission')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="4" sm="3">
+                            <v-text-field v-model.number="form.doors" type="number" :label="$t('Expose.fields.doors')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="4" sm="3">
+                            <v-text-field v-model.number="form.seats" type="number" :label="$t('Expose.fields.seats')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="4" sm="3">
+                            <v-text-field v-model.number="form.previous_owners" type="number" :label="$t('Expose.fields.previous_owners')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12" sm="3">
+                            <v-checkbox v-model="form.accident_free" :label="$t('Expose.fields.accident_free')" density="compact" hide-details />
+                        </v-col>
+                        <v-col cols="12">
+                            <v-textarea v-model="form.description" :label="$t('Expose.description')" rows="3" auto-grow variant="outlined" density="compact" />
+                        </v-col>
                         <v-col cols="12">
                             <v-textarea v-model="form.note" :label="$t('PurchaseView.dialog.note')" rows="2" auto-grow variant="outlined" density="compact" />
                         </v-col>
@@ -194,16 +225,19 @@
             </v-card>
         </v-dialog>
 
-        <v-dialog v-model="price_tag_dialog" max-width="900" scrollable>
+        <v-dialog v-model="document_dialog" max-width="900" scrollable>
             <v-card>
                 <v-card-title class="d-flex align-center">
-                    {{ $t('PriceTag.title') }}
+                    {{ document_kind === 'expose' ? $t('Expose.title') : $t('PriceTag.title') }}
                     <v-spacer />
-                    <v-btn prepend-icon="mdi-printer" color="primary" variant="flat" @click="printPriceTag">{{ $t('PriceTag.print') }}</v-btn>
+                    <v-btn prepend-icon="mdi-printer" color="primary" variant="flat" @click="printDocument">{{ $t('PriceTag.print') }}</v-btn>
                 </v-card-title>
-                <v-card-text class="price-tag-preview">
-                    <div class="price-tag-print-area">
-                        <PriceTag v-if="car_price_tag" :car_price_tag="car_price_tag" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
+                <v-card-text class="document-preview">
+                    <div ref="document_area" class="document-print-area">
+                        <template v-if="car_document">
+                            <Expose v-if="document_kind === 'expose'" :car_document="car_document" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
+                            <PriceTag v-else :car_document="car_document" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
+                        </template>
                     </div>
                 </v-card-text>
             </v-card>
@@ -216,6 +250,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import NavbarView from '@/core/components/navbar/navbar.view.vue';
 import PriceTag from '@/features/lxcars/components/price-tag.vue';
+import Expose from '@/features/lxcars/components/expose.vue';
 import { oserpStore } from '@/core/stores/oserp.store.js';
 import { lxcarsStore } from '@/features/lxcars/stores/lxcars.store.js';
 
@@ -225,8 +260,10 @@ const branding = oserpStore().getBrandingConfig();
 
 // Effizienzklassen sind gesetzlich festgelegt (PKW-EnVKV)
 const efficiency_classes = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
-const price_tag_dialog = ref(false);
-const car_price_tag = ref(null);
+const document_dialog = ref(false);
+const document_kind = ref('price_tag');
+const document_area = ref(null);
+const car_document = ref(null);
 
 const status_keys = ['', 'purchased', 'listed', 'reserved', 'sold'];
 const money_fields = ['purchase_price', 'costs_repair', 'costs_preparation', 'costs_transport', 'costs_other'];
@@ -246,7 +283,7 @@ const car_options = ref([]);
 const car_loading = ref(false);
 
 const headers = computed(() =>
-    ['c_ln', 'c_mt', 'purchase_date', 'total_costs', 'target_price', 'asking_price', 'profit', 'days_in_stock', 'status', 'actions']
+    ['vehicle_number', 'c_ln', 'c_mt', 'purchase_date', 'total_costs', 'target_price', 'asking_price', 'profit', 'days_in_stock', 'status', 'actions']
         .map(key => ({ title: key === 'actions' ? '' : t('PurchaseView.headers.' + key), key, sortable: key !== 'actions' }))
 );
 const status_items = computed(() =>
@@ -312,17 +349,33 @@ async function searchCars(query) {
     }
 }
 
-async function openPriceTag(item) {
+/** Oeffnet Preisschild oder Exposé; ein Exposé bekommt bei jedem Erzeugen eine neue Angebotsnummer */
+async function openDocument(item, kind) {
     try {
-        car_price_tag.value = await store.loadCarPriceTag(item.c_id);
-        price_tag_dialog.value = true;
+        car_document.value = kind === 'expose'
+            ? await store.createCarExpose(item.c_id)
+            : await store.loadCarDocumentData(item.c_id);
+        document_kind.value = kind;
+        document_dialog.value = true;
     } catch (err) {
         error.value = err?.message || '';
     }
 }
 
-function printPriceTag() {
-    window.print();
+/** Druckt nur das Dokument: Seiten werden samt Styles in einen unsichtbaren Frame kopiert (mehrseitig moeglich) */
+function printDocument() {
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:fixed;width:0;height:0;border:0;';
+    document.body.appendChild(frame);
+    const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(node => node.outerHTML).join('');
+    frame.contentDocument.write(`<!doctype html><html><head><meta charset="utf-8">${styles}</head><body style="margin:0">${document_area.value.innerHTML}</body></html>`);
+    frame.contentDocument.close();
+    frame.onload = () => {
+        frame.contentWindow.print();
+        setTimeout(() => frame.remove(), 1000);
+    };
+    // Falls das Dokument schon geladen ist, onload aber nicht mehr feuert
+    if (frame.contentDocument.readyState === 'complete') frame.onload();
 }
 
 function statusColor(value) {
@@ -354,12 +407,7 @@ onMounted(load);
 </script>
 
 <style>
-.price-tag-preview { overflow: auto; }
-.price-tag-print-area { zoom: 0.5; width: max-content; margin: 0 auto; }
-
-@media print {
-    body * { visibility: hidden; }
-    .price-tag-print-area, .price-tag-print-area * { visibility: visible; }
-    .price-tag-print-area { zoom: 1; position: absolute; left: 0; top: 0; }
-}
+.document-preview { overflow: auto; }
+.document-print-area { zoom: 0.5; width: max-content; margin: 0 auto; }
+.document-print-area .doc-page { margin-bottom: 8mm; box-shadow: 0 0 6px rgba(0, 0, 0, .3); }
 </style>

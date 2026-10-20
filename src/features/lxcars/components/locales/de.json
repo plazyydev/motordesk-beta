@@ -1,16 +1,49 @@
 {
     "PriceTag": {
+        "title": "Preisschild",
+        "print": "Drucken",
         "price": "Preis",
+        "vehicle_number": "Fahrzeugnummer",
+        "page": "Seite {n} von {total}",
         "first_registration": "Erstzulassung",
         "mileage": "Kilometerstand",
         "fuel": "Kraftstoff",
         "power": "Leistung",
+        "transmission": "Getriebe",
         "hu": "HU bis",
+        "efficiency_title": "Kraftstoffverbrauch und CO₂-Emissionen",
         "efficiency_class": "CO₂-Klasse",
         "co2": "CO₂-Emissionen (kombiniert)",
-        "consumption": "Verbrauch (kombiniert)",
-        "disclaimer": "Angaben zu Kraftstoffverbrauch und CO₂-Emissionen nach WLTP. Irrtümer und Zwischenverkauf vorbehalten.",
-        "print": "Drucken",
-        "title": "Preisschild"
+        "consumption": "Kraftstoffverbrauch (kombiniert)",
+        "disclaimer": "Angaben zu Kraftstoffverbrauch und CO₂-Emissionen nach WLTP. Ein Leitfaden über den Kraftstoffverbrauch und die CO₂-Emissionen aller neuen Personenkraftwagenmodelle ist an allen Verkaufsstellen unentgeltlich erhältlich.",
+        "engine_code": "Motorcode",
+        "paint": "Lack"
+    },
+    "Expose": {
+        "title": "Exposé",
+        "create": "Exposé erzeugen",
+        "expose_number": "Angebotsnummer",
+        "technical_data": "Technische Daten",
+        "equipment": "Ausstattung",
+        "description": "Beschreibung",
+        "yes": "Ja",
+        "no": "Nein",
+        "terms": "Irrtümer und Zwischenverkauf vorbehalten. Das Angebot ist freibleibend. Alle Angaben ohne Gewähr.",
+        "fields": {
+            "first_registration": "Erstzulassung",
+            "mileage": "Kilometerstand",
+            "fuel": "Kraftstoff",
+            "power": "Leistung",
+            "transmission": "Getriebe",
+            "engine_code": "Motorcode",
+            "c_color": "Farbe",
+            "paint_code": "Lackcode",
+            "doors": "Türen",
+            "seats": "Sitzplätze",
+            "previous_owners": "Vorbesitzer",
+            "accident_free": "Unfallfrei",
+            "hu": "HU bis",
+            "c_fin": "Fahrgestellnummer (FIN)"
+        }
     }
 }

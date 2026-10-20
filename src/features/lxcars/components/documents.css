@@ -1,0 +1,78 @@
+/* src/features/lxcars/components/documents.css — gemeinsame A4-Seiten fuer Preisschild und Exposé (druckfreundlich: weisser Grund) */
+.doc {
+    --doc-accent: #c8102e;
+    --doc-ink: #2b2b2f;
+    --doc-muted: #7a7a82;
+    --doc-line: #d9d9de;
+    --doc-tint: #f3f3f5;
+    color: var(--doc-ink);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+.doc-page {
+    width: 210mm;
+    height: 297mm;
+    box-sizing: border-box;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+}
+.doc-page::before { content: ''; display: block; height: 5mm; background: var(--doc-ink); flex: none; }
+
+.doc-header { display: flex; justify-content: space-between; align-items: center; padding: 8mm 16mm 6mm; border-bottom: 1mm solid var(--doc-accent); margin: 0 16mm; padding-left: 0; padding-right: 0; }
+.doc-logo { max-height: 22mm; max-width: 90mm; object-fit: contain; }
+.doc-number { text-align: right; }
+.doc-number__label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1.5px; color: var(--doc-muted); }
+.doc-number__value { font-size: 20pt; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+.doc-number__sub { font-size: 9pt; color: var(--doc-muted); margin-top: 1mm; }
+
+.doc-body { padding: 10mm 16mm 0; flex: 1; display: flex; flex-direction: column; }
+.doc-footer { padding: 4mm 16mm 7mm; border-top: 1px solid var(--doc-line); margin: 0 16mm; padding-left: 0; padding-right: 0; display: flex; justify-content: space-between; font-size: 8pt; color: var(--doc-muted); }
+
+.doc-title { margin: 0; font-size: 34pt; font-weight: 900; font-style: italic; text-transform: uppercase; line-height: 1.04; letter-spacing: -.5px; }
+.doc-title__make { display: block; color: var(--doc-accent); font-size: 18pt; letter-spacing: 3px; }
+.doc-subtitle { font-size: 13pt; color: var(--doc-muted); margin: 2mm 0 8mm; }
+.doc-heading { font-size: 11pt; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 4mm; padding-left: 3mm; border-left: 1.2mm solid var(--doc-accent); }
+
+.doc-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-bottom: 8mm; }
+.doc-fact { border: 1px solid var(--doc-line); border-left: 1.2mm solid var(--doc-accent); border-radius: 1.5mm; padding: 3.5mm 4.5mm; }
+.doc-fact__label { font-size: 8pt; text-transform: uppercase; color: var(--doc-muted); letter-spacing: 1px; }
+.doc-fact__value { font-size: 14pt; font-weight: 700; margin-top: .5mm; }
+
+.doc-list { font-size: 12pt; line-height: 1.6; white-space: pre-line; column-count: 2; column-gap: 10mm; margin-bottom: 8mm; }
+.doc-text { font-size: 11.5pt; line-height: 1.6; white-space: pre-line; }
+
+.doc-price {
+    background: var(--doc-tint);
+    border-left: 3mm solid var(--doc-accent);
+    transform: skewX(-8deg);
+    padding: 6mm 10mm;
+    display: flex; justify-content: space-between; align-items: center;
+    margin: auto 0 8mm;
+}
+.doc-price > * { transform: skewX(8deg); }
+.doc-price__label { font-size: 12pt; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--doc-muted); }
+.doc-price__value { font-size: 54pt; font-weight: 900; font-style: italic; line-height: 1; color: var(--doc-accent); }
+
+.doc-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 8mm; }
+.doc-table td { padding: 2mm 0; border-bottom: 1px solid var(--doc-line); }
+.doc-table td:first-child { color: var(--doc-muted); width: 45%; }
+.doc-table td:last-child { font-weight: 600; }
+
+.doc-hero { height: 90mm; border-radius: 2mm; background: var(--doc-tint) center / cover no-repeat; margin-bottom: 8mm; }
+
+.doc-efficiency { display: flex; gap: 14mm; align-items: center; margin: 6mm 0 10mm; }
+.doc-scale { display: flex; flex-direction: column; gap: 1.6mm; }
+.doc-scale__row { height: 9mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 3mm; color: #fff; font-weight: 700; font-size: 12pt; border-radius: 0 4mm 4mm 0; }
+.doc-scale__row--active { outline: 2.5px solid #111; font-size: 16pt; }
+.doc-efficiency__values { font-size: 13pt; line-height: 2; }
+.doc-efficiency__values strong { font-size: 17pt; }
+.doc-note { font-size: 9pt; color: var(--doc-muted); line-height: 1.5; }
+
+@media print {
+    @page { size: A4 portrait; margin: 0; }
+}
