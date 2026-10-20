@@ -1,0 +1,16 @@
+{
+    "PriceTag": {
+        "price": "Preis",
+        "first_registration": "Erstzulassung",
+        "mileage": "Kilometerstand",
+        "fuel": "Kraftstoff",
+        "power": "Leistung",
+        "hu": "HU bis",
+        "efficiency_class": "CO₂-Klasse",
+        "co2": "CO₂-Emissionen (kombiniert)",
+        "consumption": "Verbrauch (kombiniert)",
+        "disclaimer": "Angaben zu Kraftstoffverbrauch und CO₂-Emissionen nach WLTP. Irrtümer und Zwischenverkauf vorbehalten.",
+        "print": "Drucken",
+        "title": "Preisschild"
+    }
+}

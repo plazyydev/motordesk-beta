@@ -1,0 +1,62 @@
+/* src/features/lxcars/components/price-tag.css — Preisschild (A4 hochkant, druckfertig) */
+.price-tag {
+    --pt-accent: #0d47a1;
+    width: 210mm;
+    height: 297mm;
+    box-sizing: border-box;
+    padding: 14mm 16mm;
+    background: #fff;
+    color: #111;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+.price-tag__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--pt-accent);
+    padding-bottom: 6mm;
+    min-height: 26mm;
+}
+.price-tag__logo { max-height: 22mm; max-width: 70mm; object-fit: contain; }
+.price-tag__plate { font-size: 14pt; font-weight: 600; color: #555; letter-spacing: 1px; }
+.price-tag__title { margin: 10mm 0 2mm; font-size: 34pt; font-weight: 800; line-height: 1.05; }
+.price-tag__subtitle { font-size: 16pt; color: #555; margin-bottom: 8mm; }
+.price-tag__facts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4mm 8mm;
+    margin-bottom: 8mm;
+}
+.price-tag__fact { border-left: 3px solid var(--pt-accent); padding-left: 4mm; }
+.price-tag__fact-label { font-size: 10pt; text-transform: uppercase; color: #777; letter-spacing: .5px; }
+.price-tag__fact-value { font-size: 18pt; font-weight: 700; }
+.price-tag__equipment { font-size: 13pt; line-height: 1.5; white-space: pre-line; flex: 1; margin-bottom: 6mm; }
+.price-tag__price-box {
+    background: var(--pt-accent);
+    color: #fff;
+    border-radius: 4mm;
+    padding: 8mm 10mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8mm;
+}
+.price-tag__price-label { font-size: 14pt; text-transform: uppercase; letter-spacing: 1px; }
+.price-tag__price { font-size: 52pt; font-weight: 800; }
+.price-tag__efficiency { border: 1px solid #ccc; border-radius: 3mm; padding: 5mm 6mm; display: flex; gap: 8mm; align-items: center; }
+.price-tag__scale { display: flex; flex-direction: column; gap: 1mm; }
+.price-tag__scale-row {
+    height: 6mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 2mm;
+    color: #fff; font-weight: 700; font-size: 10pt; border-radius: 0 3mm 3mm 0;
+}
+.price-tag__scale-row--active { outline: 2px solid #111; font-size: 12pt; }
+.price-tag__efficiency-values { font-size: 11pt; line-height: 1.6; }
+.price-tag__efficiency-values strong { font-size: 13pt; }
+.price-tag__disclaimer { font-size: 8pt; color: #777; margin-top: 4mm; }
+
+@media print {
+    @page { size: A4 portrait; margin: 0; }
+    .price-tag { page-break-after: always; }
+}

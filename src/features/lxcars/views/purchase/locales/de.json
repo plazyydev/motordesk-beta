@@ -1,6 +1,8 @@
 {
     "PurchaseView": {
-        "routes": { "purchases": "/ankauf" },
+        "routes": {
+            "purchases": "/ankauf"
+        },
         "title": "Ankauf & Kalkulation",
         "entries": "Einträge",
         "new": "Ankauf erfassen",
@@ -51,7 +53,9 @@
             "total_costs": "Gesamtkosten",
             "target_price": "Zielverkaufspreis",
             "cancel": "Abbrechen",
-            "save": "Speichern"
+            "save": "Speichern",
+            "price_tag_section": "Preisschild",
+            "tag_equipment": "Ausstattung (eine Zeile pro Punkt)"
         }
     }
 }

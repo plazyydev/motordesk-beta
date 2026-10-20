@@ -41,3 +41,19 @@ function saveCarPurchase($data) {
     $row = $db->getOne("SELECT car_purchase_save(CAST(:p AS jsonb)) AS result", [':p' => json_encode($data)]);
     resultInfo(true, '', json_decode($row['result'], true));
 }
+
+/**
+ * Laedt die Daten fuer das Preisschild eines Fahrzeugs
+ *
+ * @param int $data['c_id'] Fahrzeug-ID
+ * @testdata {"c_id": 1}
+ */
+function getCarPriceTag($data) {
+    $db = DbhCompany::begin();
+    $row = $db->getOne("SELECT car_price_tag(:c_id) AS result", [':c_id' => intval($data['c_id'] ?? 0)]);
+    if (empty($row['result'])) {
+        resultInfo(false, 'NOT_FOUND', 'Kein Ankauf zu diesem Fahrzeug');
+        return;
+    }
+    resultInfo(true, '', json_decode($row['result'], true));
+}

@@ -1,6 +1,8 @@
 {
     "PurchaseView": {
-        "routes": { "purchases": "/purchases" },
+        "routes": {
+            "purchases": "/purchases"
+        },
         "title": "Purchases & Calculation",
         "entries": "entries",
         "new": "Add purchase",
@@ -8,21 +10,52 @@
         "refresh": "Refresh",
         "noData": "No purchases found",
         "saved": "Saved",
-        "status": { "all": "All", "purchased": "Purchased", "listed": "Listed", "reserved": "Reserved", "sold": "Sold" },
-        "summary": { "total_costs": "Total costs", "total_asking_price": "Asking prices (open)", "total_profit": "Profit (sold)" },
+        "status": {
+            "all": "All",
+            "purchased": "Purchased",
+            "listed": "Listed",
+            "reserved": "Reserved",
+            "sold": "Sold"
+        },
+        "summary": {
+            "total_costs": "Total costs",
+            "total_asking_price": "Asking prices (open)",
+            "total_profit": "Profit (sold)"
+        },
         "headers": {
-            "c_ln": "Plate", "c_mt": "Vehicle", "purchase_date": "Purchased", "total_costs": "Costs",
-            "target_price": "Target price", "asking_price": "Asking price", "profit": "Profit",
-            "days_in_stock": "Days in stock", "status": "Status"
+            "c_ln": "Plate",
+            "c_mt": "Vehicle",
+            "purchase_date": "Purchased",
+            "total_costs": "Costs",
+            "target_price": "Target price",
+            "asking_price": "Asking price",
+            "profit": "Profit",
+            "days_in_stock": "Days in stock",
+            "status": "Status"
         },
         "days": "{n} days",
         "dialog": {
-            "title": "Purchase & calculation", "car": "Vehicle", "seller": "Seller", "purchase_date": "Purchase date",
-            "purchase_price": "Purchase price", "costs_repair": "Repairs", "costs_preparation": "Preparation",
-            "costs_transport": "Transport", "costs_other": "Other costs", "desired_margin_percent": "Desired margin (%)",
-            "asking_price": "Asking price", "sold_price": "Sold price", "sold_date": "Sold date", "status": "Status",
-            "note": "Note", "total_costs": "Total costs", "target_price": "Target sale price",
-            "cancel": "Cancel", "save": "Save"
+            "title": "Purchase & calculation",
+            "car": "Vehicle",
+            "seller": "Seller",
+            "purchase_date": "Purchase date",
+            "purchase_price": "Purchase price",
+            "costs_repair": "Repairs",
+            "costs_preparation": "Preparation",
+            "costs_transport": "Transport",
+            "costs_other": "Other costs",
+            "desired_margin_percent": "Desired margin (%)",
+            "asking_price": "Asking price",
+            "sold_price": "Sold price",
+            "sold_date": "Sold date",
+            "status": "Status",
+            "note": "Note",
+            "total_costs": "Total costs",
+            "target_price": "Target sale price",
+            "cancel": "Cancel",
+            "save": "Save",
+            "price_tag_section": "Price tag",
+            "tag_equipment": "Equipment (one line per item)"
         }
     }
 }

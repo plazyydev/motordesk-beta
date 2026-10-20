@@ -852,9 +852,16 @@ CREATE TABLE IF NOT EXISTS car_purchases (
     sold_date             date,
     status                text NOT NULL DEFAULT 'purchased',
     note                  text,
+    fuel_type             text,
+    power_kw              integer,
+    co2_g_km              integer,
+    consumption_combined  numeric(5,2),
+    efficiency_class      varchar(2),
+    tag_equipment         text,
     created_at            timestamp NOT NULL DEFAULT now(),
     CONSTRAINT car_purchases_c_id_unique UNIQUE (c_id),
-    CONSTRAINT car_purchases_status_check CHECK (status IN ('purchased', 'listed', 'reserved', 'sold'))
+    CONSTRAINT car_purchases_status_check CHECK (status IN ('purchased', 'listed', 'reserved', 'sold')),
+    CONSTRAINT car_purchases_efficiency_class_check CHECK (efficiency_class IN ('A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'))
 );
 CREATE INDEX IF NOT EXISTS idx_car_purchases_status ON car_purchases(status);
 
@@ -902,7 +909,8 @@ BEGIN
 
     INSERT INTO car_purchases (c_id, purchase_date, seller, purchase_price, costs_repair, costs_preparation,
                                costs_transport, costs_other, desired_margin_percent, asking_price,
-                               sold_price, sold_date, status, note)
+                               sold_price, sold_date, status, note, fuel_type, power_kw, co2_g_km,
+                               consumption_combined, efficiency_class, tag_equipment)
     VALUES (v_c_id,
             COALESCE(NULLIF(p->>'purchase_date', '')::date, current_date),
             p->>'seller',
@@ -916,7 +924,13 @@ BEGIN
             NULLIF(p->>'sold_price', '')::numeric,
             NULLIF(p->>'sold_date', '')::date,
             COALESCE(NULLIF(p->>'status', ''), 'purchased'),
-            p->>'note')
+            p->>'note',
+            NULLIF(p->>'fuel_type', ''),
+            NULLIF(p->>'power_kw', '')::integer,
+            NULLIF(p->>'co2_g_km', '')::integer,
+            NULLIF(p->>'consumption_combined', '')::numeric,
+            NULLIF(p->>'efficiency_class', ''),
+            NULLIF(p->>'tag_equipment', ''))
     ON CONFLICT (c_id) DO UPDATE SET
         purchase_date = EXCLUDED.purchase_date,
         seller = EXCLUDED.seller,
@@ -930,7 +944,13 @@ BEGIN
         sold_price = EXCLUDED.sold_price,
         sold_date = EXCLUDED.sold_date,
         status = EXCLUDED.status,
-        note = EXCLUDED.note;
+        note = EXCLUDED.note,
+        fuel_type = EXCLUDED.fuel_type,
+        power_kw = EXCLUDED.power_kw,
+        co2_g_km = EXCLUDED.co2_g_km,
+        consumption_combined = EXCLUDED.consumption_combined,
+        efficiency_class = EXCLUDED.efficiency_class,
+        tag_equipment = EXCLUDED.tag_equipment;
 
     IF NULLIF(p->>'asking_price', '') IS NOT NULL
        AND v_old_price IS DISTINCT FROM (p->>'asking_price')::numeric THEN
@@ -940,3 +960,27 @@ BEGIN
     RETURN json_build_object('c_id', v_c_id);
 END;
 $$ LANGUAGE plpgsql;
+
+-- Liefert alle Daten fuer das Preisschild eines Fahrzeugs als ein JSON-Objekt
+CREATE OR REPLACE FUNCTION car_price_tag(p_c_id integer) RETURNS json AS $$
+    SELECT json_build_object(
+        'c_id', c.c_id,
+        'c_ln', c.c_ln,
+        'c_m', c.c_m,
+        'c_mt', c.c_mt,
+        'c_d', c.c_d,
+        'c_hu', c.c_hu,
+        'c_km', c.c_km,
+        'c_color', c.c_color,
+        'asking_price', p.asking_price,
+        'fuel_type', p.fuel_type,
+        'power_kw', p.power_kw,
+        'co2_g_km', p.co2_g_km,
+        'consumption_combined', p.consumption_combined,
+        'efficiency_class', p.efficiency_class,
+        'tag_equipment', p.tag_equipment
+    )
+    FROM cars_lxcars c
+    JOIN car_purchases p ON p.c_id = c.c_id
+    WHERE c.c_id = p_c_id;
+$$ LANGUAGE sql STABLE;

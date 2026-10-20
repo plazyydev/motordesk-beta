@@ -1,0 +1,16 @@
+{
+    "PriceTag": {
+        "price": "Price",
+        "first_registration": "First registration",
+        "mileage": "Mileage",
+        "fuel": "Fuel",
+        "power": "Power",
+        "hu": "Inspection until",
+        "efficiency_class": "CO₂ class",
+        "co2": "CO₂ emissions (combined)",
+        "consumption": "Consumption (combined)",
+        "disclaimer": "Fuel consumption and CO₂ emissions according to WLTP. Errors and prior sale excepted.",
+        "print": "Print",
+        "title": "Price tag"
+    }
+}

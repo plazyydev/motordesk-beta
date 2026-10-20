@@ -81,6 +81,11 @@
                     <span v-else>-</span>
                 </template>
                 <template #item.days_in_stock="{ item }">{{ $t('PurchaseView.days', { n: item.days_in_stock }) }}</template>
+                <template #item.actions="{ item }">
+                    <v-btn icon variant="text" size="small" :title="$t('PriceTag.title')" @click.stop="openPriceTag(item)">
+                        <v-icon>mdi-tag-text-outline</v-icon>
+                    </v-btn>
+                </template>
                 <template #item.status="{ item }">
                     <v-chip size="small" variant="tonal" :color="statusColor(item.status)">
                         {{ $t('PurchaseView.status.' + item.status) }}
@@ -155,6 +160,25 @@
                                 <v-text-field v-model="form.sold_date" type="date" :label="$t('PurchaseView.dialog.sold_date')" variant="outlined" density="compact" />
                             </v-col>
                         </template>
+                        <v-col cols="12" class="text-subtitle-2">{{ $t('PurchaseView.dialog.price_tag_section') }}</v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model="form.fuel_type" :label="$t('PriceTag.fuel')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model.number="form.power_kw" type="number" suffix="kW" :label="$t('PriceTag.power')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="4">
+                            <v-select v-model="form.efficiency_class" :items="efficiency_classes" clearable :label="$t('PriceTag.efficiency_class')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="6">
+                            <v-text-field v-model.number="form.co2_g_km" type="number" suffix="g/km" :label="$t('PriceTag.co2')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="6">
+                            <v-text-field v-model.number="form.consumption_combined" type="number" suffix="l/100 km" :label="$t('PriceTag.consumption')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12">
+                            <v-textarea v-model="form.tag_equipment" :label="$t('PurchaseView.dialog.tag_equipment')" rows="3" auto-grow variant="outlined" density="compact" />
+                        </v-col>
                         <v-col cols="12">
                             <v-textarea v-model="form.note" :label="$t('PurchaseView.dialog.note')" rows="2" auto-grow variant="outlined" density="compact" />
                         </v-col>
@@ -169,6 +193,21 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+
+        <v-dialog v-model="price_tag_dialog" max-width="900" scrollable>
+            <v-card>
+                <v-card-title class="d-flex align-center">
+                    {{ $t('PriceTag.title') }}
+                    <v-spacer />
+                    <v-btn prepend-icon="mdi-printer" color="primary" variant="flat" @click="printPriceTag">{{ $t('PriceTag.print') }}</v-btn>
+                </v-card-title>
+                <v-card-text class="price-tag-preview">
+                    <div class="price-tag-print-area">
+                        <PriceTag v-if="car_price_tag" :car_price_tag="car_price_tag" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
+                    </div>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 
@@ -176,10 +215,18 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import NavbarView from '@/core/components/navbar/navbar.view.vue';
+import PriceTag from '@/features/lxcars/components/price-tag.vue';
+import { oserpStore } from '@/core/stores/oserp.store.js';
 import { lxcarsStore } from '@/features/lxcars/stores/lxcars.store.js';
 
 const { t } = useI18n();
 const store = lxcarsStore();
+const branding = oserpStore().getBrandingConfig();
+
+// Effizienzklassen sind gesetzlich festgelegt (PKW-EnVKV)
+const efficiency_classes = ['A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const price_tag_dialog = ref(false);
+const car_price_tag = ref(null);
 
 const status_keys = ['', 'purchased', 'listed', 'reserved', 'sold'];
 const money_fields = ['purchase_price', 'costs_repair', 'costs_preparation', 'costs_transport', 'costs_other'];
@@ -199,8 +246,8 @@ const car_options = ref([]);
 const car_loading = ref(false);
 
 const headers = computed(() =>
-    ['c_ln', 'c_mt', 'purchase_date', 'total_costs', 'target_price', 'asking_price', 'profit', 'days_in_stock', 'status']
-        .map(key => ({ title: t('PurchaseView.headers.' + key), key }))
+    ['c_ln', 'c_mt', 'purchase_date', 'total_costs', 'target_price', 'asking_price', 'profit', 'days_in_stock', 'status', 'actions']
+        .map(key => ({ title: key === 'actions' ? '' : t('PurchaseView.headers.' + key), key, sortable: key !== 'actions' }))
 );
 const status_items = computed(() =>
     status_keys.filter(Boolean).map(value => ({ value, title: t('PurchaseView.status.' + value) }))
@@ -265,6 +312,19 @@ async function searchCars(query) {
     }
 }
 
+async function openPriceTag(item) {
+    try {
+        car_price_tag.value = await store.loadCarPriceTag(item.c_id);
+        price_tag_dialog.value = true;
+    } catch (err) {
+        error.value = err?.message || '';
+    }
+}
+
+function printPriceTag() {
+    window.print();
+}
+
 function statusColor(value) {
     return { purchased: 'grey', listed: 'primary', reserved: 'warning', sold: 'success' }[value];
 }
@@ -292,3 +352,14 @@ watch(car_search, query => {
 
 onMounted(load);
 </script>
+
+<style>
+.price-tag-preview { overflow: auto; }
+.price-tag-print-area { zoom: 0.5; width: max-content; margin: 0 auto; }
+
+@media print {
+    body * { visibility: hidden; }
+    .price-tag-print-area, .price-tag-print-area * { visibility: visible; }
+    .price-tag-print-area { zoom: 1; position: absolute; left: 0; top: 0; }
+}
+</style>

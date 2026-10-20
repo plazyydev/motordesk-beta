@@ -131,6 +131,21 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
     }
 
     /**
+     * Laedt die Preisschild-Daten eines Fahrzeugs
+     *
+     * @param {number} c_id - Fahrzeug-ID
+     * @return {Promise<Object>} car_price_tag
+     */
+    async function loadCarPriceTag(c_id) {
+        const response = await axios.post('/api/lxcars/', { action: 'getCarPriceTag', c_id });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error loading price tag: ' + response.data.text);
+        }
+        return response.data.payload;
+    }
+
+    /**
      * Speichert einen Ankauf (Anlegen/Aktualisieren) fuer ein Fahrzeug
      *
      * @param {Object} car_purchase - Felder der Tabelle car_purchases (inkl. c_id)
@@ -1334,6 +1349,7 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
         loadCar,
         loadCars,
         loadCarPurchases,
+        loadCarPriceTag,
         saveCarPurchase,
         resolveKtype,
         getAagEngine,
