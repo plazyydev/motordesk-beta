@@ -842,6 +842,10 @@ CREATE SEQUENCE IF NOT EXISTS car_vehicle_number_seq;
 CREATE SEQUENCE IF NOT EXISTS car_expose_number_seq;
 INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_vehicle_number_prefix', 'FZ-') ON CONFLICT (key) DO NOTHING;
 INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_expose_number_prefix', 'AN-') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_expose_message_commercial', E'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihr Interesse an diesem Fahrzeug. Auf den folgenden Seiten finden Sie alle Informationen, Ausstattungsmerkmale und Fotos. Gerne vereinbaren wir einen Termin zur Besichtigung und Probefahrt.') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_expose_message_private', E'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihr Interesse an meinem Fahrzeug. Auf den folgenden Seiten finden Sie alle Informationen, Ausstattungsmerkmale und Fotos. Gerne können wir einen Termin zur Besichtigung und Probefahrt vereinbaren.') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_terms_commercial', 'Irrtümer und Zwischenverkauf vorbehalten. Das Angebot ist freibleibend.') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_terms_private', 'Privatverkauf: Der Verkauf erfolgt unter Ausschluss der Sachmängelhaftung, ohne Garantie und ohne Rücknahme. Irrtümer und Zwischenverkauf vorbehalten.') ON CONFLICT (key) DO NOTHING;
 
 -- Naechste Nummer eines Nummernkreises: Praefix aus defaults_oserp + vierstelliger Zaehler
 CREATE OR REPLACE FUNCTION car_next_number(p_prefix_key text, p_sequence text) RETURNS text AS $$
@@ -880,9 +884,20 @@ CREATE TABLE IF NOT EXISTS car_purchases (
     seats                 integer,
     accident_free         boolean,
     description           text,
+    sale_type             text NOT NULL DEFAULT 'commercial',
+    consumption_city      numeric(5,2),
+    consumption_highway   numeric(5,2),
+    consumption_unit      text NOT NULL DEFAULT 'l/100 km',
+    equipment_highlights  text,
+    vehicle_location      text,
+    contact_name          text,
+    contact_phone         text,
+    contact_email         text,
+    expose_message        text,
     created_at            timestamp NOT NULL DEFAULT now(),
     CONSTRAINT car_purchases_c_id_unique UNIQUE (c_id),
     CONSTRAINT car_purchases_vehicle_number_unique UNIQUE (vehicle_number),
+    CONSTRAINT car_purchases_sale_type_check CHECK (sale_type IN ('commercial', 'private')),
     CONSTRAINT car_purchases_status_check CHECK (status IN ('purchased', 'listed', 'reserved', 'sold')),
     CONSTRAINT car_purchases_efficiency_class_check CHECK (efficiency_class IN ('A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'))
 );
@@ -947,7 +962,10 @@ BEGIN
                                costs_preparation, costs_transport, costs_other, desired_margin_percent,
                                asking_price, sold_price, sold_date, status, note, fuel_type, power_kw,
                                co2_g_km, consumption_combined, efficiency_class, tag_equipment, paint_code,
-                               engine_code, transmission, previous_owners, doors, seats, accident_free, description)
+                               engine_code, transmission, previous_owners, doors, seats, accident_free, description,
+                               sale_type, consumption_city, consumption_highway, consumption_unit,
+                               equipment_highlights, vehicle_location, contact_name, contact_phone,
+                               contact_email, expose_message)
     VALUES (v_c_id,
             car_next_number('lxcars_vehicle_number_prefix', 'car_vehicle_number_seq'),
             COALESCE(NULLIF(p->>'purchase_date', '')::date, current_date),
@@ -976,7 +994,17 @@ BEGIN
             NULLIF(p->>'doors', '')::integer,
             NULLIF(p->>'seats', '')::integer,
             NULLIF(p->>'accident_free', '')::boolean,
-            NULLIF(p->>'description', ''))
+            NULLIF(p->>'description', ''),
+            COALESCE(NULLIF(p->>'sale_type', ''), 'commercial'),
+            NULLIF(p->>'consumption_city', '')::numeric,
+            NULLIF(p->>'consumption_highway', '')::numeric,
+            COALESCE(NULLIF(p->>'consumption_unit', ''), 'l/100 km'),
+            NULLIF(p->>'equipment_highlights', ''),
+            NULLIF(p->>'vehicle_location', ''),
+            NULLIF(p->>'contact_name', ''),
+            NULLIF(p->>'contact_phone', ''),
+            NULLIF(p->>'contact_email', ''),
+            NULLIF(p->>'expose_message', ''))
     ON CONFLICT (c_id) DO UPDATE SET
         purchase_date = EXCLUDED.purchase_date,
         seller = EXCLUDED.seller,
@@ -1004,7 +1032,17 @@ BEGIN
         doors = EXCLUDED.doors,
         seats = EXCLUDED.seats,
         accident_free = EXCLUDED.accident_free,
-        description = EXCLUDED.description;
+        description = EXCLUDED.description,
+        sale_type = EXCLUDED.sale_type,
+        consumption_city = EXCLUDED.consumption_city,
+        consumption_highway = EXCLUDED.consumption_highway,
+        consumption_unit = EXCLUDED.consumption_unit,
+        equipment_highlights = EXCLUDED.equipment_highlights,
+        vehicle_location = EXCLUDED.vehicle_location,
+        contact_name = EXCLUDED.contact_name,
+        contact_phone = EXCLUDED.contact_phone,
+        contact_email = EXCLUDED.contact_email,
+        expose_message = EXCLUDED.expose_message;
 
     IF NULLIF(p->>'asking_price', '') IS NOT NULL
        AND v_old_price IS DISTINCT FROM (p->>'asking_price')::numeric THEN
@@ -1042,7 +1080,18 @@ CREATE OR REPLACE FUNCTION car_document_data(p_c_id integer) RETURNS json AS $$
         'doors', p.doors,
         'seats', p.seats,
         'accident_free', p.accident_free,
-        'description', p.description
+        'description', p.description,
+        'sale_type', p.sale_type,
+        'consumption_city', p.consumption_city,
+        'consumption_highway', p.consumption_highway,
+        'consumption_unit', p.consumption_unit,
+        'equipment_highlights', p.equipment_highlights,
+        'vehicle_location', COALESCE(p.vehicle_location, (SELECT value FROM defaults_oserp WHERE key = 'lxcars_vehicle_location')),
+        'contact_name', COALESCE(p.contact_name, (SELECT value FROM defaults_oserp WHERE key = 'lxcars_contact_name')),
+        'contact_phone', COALESCE(p.contact_phone, (SELECT value FROM defaults_oserp WHERE key = 'lxcars_contact_phone')),
+        'contact_email', COALESCE(p.contact_email, (SELECT value FROM defaults_oserp WHERE key = 'lxcars_contact_email')),
+        'expose_message', COALESCE(p.expose_message, (SELECT value FROM defaults_oserp WHERE key = 'lxcars_expose_message_' || p.sale_type)),
+        'terms', (SELECT value FROM defaults_oserp WHERE key = 'lxcars_terms_' || p.sale_type)
     )
     FROM cars_lxcars c
     JOIN car_purchases p ON p.c_id = c.c_id

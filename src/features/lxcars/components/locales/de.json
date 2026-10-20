@@ -17,7 +17,10 @@
         "consumption": "Kraftstoffverbrauch (kombiniert)",
         "disclaimer": "Angaben zu Kraftstoffverbrauch und CO₂-Emissionen nach WLTP. Ein Leitfaden über den Kraftstoffverbrauch und die CO₂-Emissionen aller neuen Personenkraftwagenmodelle ist an allen Verkaufsstellen unentgeltlich erhältlich.",
         "engine_code": "Motorcode",
-        "paint": "Lack"
+        "paint": "Lack",
+        "consumption_combined": "Verbrauch kombiniert",
+        "consumption_city": "Stadt (Kurzstrecke)",
+        "consumption_highway": "Autobahn (Langstrecke)"
     },
     "Expose": {
         "title": "Exposé",
@@ -43,7 +46,12 @@
             "previous_owners": "Vorbesitzer",
             "accident_free": "Unfallfrei",
             "hu": "HU bis",
-            "c_fin": "Fahrgestellnummer (FIN)"
-        }
+            "c_fin": "Fahrgestellnummer (FIN)",
+            "paint": "Lack"
+        },
+        "highlights": "Ausstattungs-Highlights",
+        "photos": "Fotos",
+        "contact": "Ansprechpartner",
+        "location": "Fahrzeugstandort"
     }
 }

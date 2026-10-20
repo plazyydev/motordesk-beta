@@ -33,45 +33,74 @@
 .doc-body { padding: 10mm 16mm 0; flex: 1; display: flex; flex-direction: column; }
 .doc-footer { padding: 4mm 16mm 7mm; border-top: 1px solid var(--doc-line); margin: 0 16mm; padding-left: 0; padding-right: 0; display: flex; justify-content: space-between; font-size: 8pt; color: var(--doc-muted); }
 
-.doc-title { margin: 0; font-size: 34pt; font-weight: 900; font-style: italic; text-transform: uppercase; line-height: 1.04; letter-spacing: -.5px; }
+.doc-title + .doc-heading, .doc-title + div > .doc-heading { margin-top: 8mm; }
+.doc-title { margin: 0 0 3mm; font-size: 34pt; font-weight: 900; font-style: italic; text-transform: uppercase; line-height: 1.04; letter-spacing: -.5px; }
 .doc-title__make { display: block; color: var(--doc-accent); font-size: 18pt; letter-spacing: 3px; }
 .doc-subtitle { font-size: 13pt; color: var(--doc-muted); margin: 2mm 0 8mm; }
-.doc-heading { font-size: 11pt; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 4mm; padding-left: 3mm; border-left: 1.2mm solid var(--doc-accent); }
+.doc-heading { margin-top: 2mm; font-size: 11pt; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4mm; padding-left: 3mm; border-left: 1.2mm solid var(--doc-accent); }
 
 .doc-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-bottom: 8mm; }
+.doc-facts--top { margin-top: 6mm; }
+.doc-facts--compact { gap: 3mm; margin-bottom: 5mm; }
+.doc-facts--compact .doc-fact { padding: 2.2mm 4mm; }
+.doc-facts--compact .doc-fact__value { font-size: 12pt; }
 .doc-fact { border: 1px solid var(--doc-line); border-left: 1.2mm solid var(--doc-accent); border-radius: 1.5mm; padding: 3.5mm 4.5mm; }
 .doc-fact__label { font-size: 8pt; text-transform: uppercase; color: var(--doc-muted); letter-spacing: 1px; }
 .doc-fact__value { font-size: 14pt; font-weight: 700; margin-top: .5mm; }
 
-.doc-list { font-size: 12pt; line-height: 1.6; white-space: pre-line; column-count: 2; column-gap: 10mm; margin-bottom: 8mm; }
+.doc-list { font-size: 11.5pt; line-height: 1.55; margin: 0 0 6mm; padding-left: 5mm; column-count: 2; column-gap: 10mm; }
+.doc-list--small { font-size: 10.5pt; column-count: 3; column-gap: 8mm; }
+.doc-list li { break-inside: avoid; }
+.doc-inline { display: flex; flex-wrap: wrap; gap: 2mm 8mm; font-size: 11pt; margin-bottom: 6mm; }
+.doc-inline strong { font-weight: 700; }
+.doc-highlights { list-style: none; margin: 0 0 8mm; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 3mm 8mm; }
+.doc-highlights li { font-size: 13pt; font-weight: 600; padding: 3mm 4mm 3mm 11mm; background: var(--doc-tint); border-radius: 1.5mm; position: relative; }
+.doc-highlights li::before { content: '✓'; position: absolute; left: 4mm; color: var(--doc-accent); font-weight: 900; }
 .doc-text { font-size: 11.5pt; line-height: 1.6; white-space: pre-line; }
+.doc-text--clamp { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.doc-message { margin-top: 1mm; margin-bottom: 5mm; color: #444; font-size: 10.5pt; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
 
 .doc-price {
+    flex: none;
     background: var(--doc-tint);
     border-left: 3mm solid var(--doc-accent);
     transform: skewX(-8deg);
     padding: 6mm 10mm;
     display: flex; justify-content: space-between; align-items: center;
-    margin: auto 0 8mm;
+    margin: 6mm 0 8mm;
 }
 .doc-price > * { transform: skewX(8deg); }
 .doc-price__label { font-size: 12pt; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--doc-muted); }
 .doc-price__value { font-size: 54pt; font-weight: 900; font-style: italic; line-height: 1; color: var(--doc-accent); }
 
-.doc-table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 8mm; }
-.doc-table td { padding: 2mm 0; border-bottom: 1px solid var(--doc-line); }
+.doc-price--compact { padding: 3mm 10mm; margin-bottom: 5mm; margin-top: 0; }
+.doc-price--compact .doc-price__value { font-size: 32pt; }
+
+.doc-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-bottom: 8mm; }
+.doc-table td { padding: 1.4mm 0; border-bottom: 1px solid var(--doc-line); }
 .doc-table td:first-child { color: var(--doc-muted); width: 45%; }
 .doc-table td:last-child { font-weight: 600; }
 
-.doc-hero { height: 90mm; border-radius: 2mm; background: var(--doc-tint) center / cover no-repeat; margin-bottom: 8mm; }
+.doc-fill { flex: 1; min-height: 0; overflow: hidden; }
+.doc-contact { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4mm; margin-top: auto; }
+.doc-contact__card { border: 1px solid var(--doc-line); border-left: 1.2mm solid var(--doc-accent); border-radius: 1.5mm; padding: 3.5mm 4.5mm; }
+.doc-contact__line { font-size: 11pt; font-weight: 600; line-height: 1.5; }
 
-.doc-efficiency { display: flex; gap: 14mm; align-items: center; margin: 6mm 0 10mm; }
-.doc-scale { display: flex; flex-direction: column; gap: 1.6mm; }
-.doc-scale__row { height: 9mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 3mm; color: #fff; font-weight: 700; font-size: 12pt; border-radius: 0 4mm 4mm 0; }
-.doc-scale__row--active { outline: 2.5px solid #111; font-size: 16pt; }
-.doc-efficiency__values { font-size: 13pt; line-height: 2; }
-.doc-efficiency__values strong { font-size: 17pt; }
+.doc-photos { display: grid; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 58mm; gap: 5mm; }
+.doc-photos__item { border-radius: 1.5mm; background: var(--doc-tint) center / cover no-repeat; }
+
+.doc-hero { height: 56mm; border-radius: 2mm; background: var(--doc-tint) center / cover no-repeat; margin-bottom: 5mm; }
+
+.doc-efficiency { display: flex; gap: 8mm; align-items: center; margin: 4mm 0 8mm; }
+.doc-scale { display: flex; flex-direction: column; gap: 1.2mm; flex: none; }
+.doc-scale__row { height: 7mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 3mm; color: #fff; font-weight: 700; font-size: 11pt; border-radius: 0 3.5mm 3.5mm 0; }
+.doc-scale__row--active { outline: 2.5px solid #111; font-size: 14pt; }
+.doc-values { font-size: 11.5pt; border-collapse: collapse; }
+.doc-values td { white-space: nowrap; }
+.doc-values td { padding: 1.6mm 4mm 1.6mm 0; }
+.doc-values strong { font-size: 15pt; }
 .doc-note { font-size: 9pt; color: var(--doc-muted); line-height: 1.5; }
+.doc-note--bottom { margin-top: auto; padding-bottom: 6mm; }
 
 @media print {
     @page { size: A4 portrait; margin: 0; }

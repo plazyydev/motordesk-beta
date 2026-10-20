@@ -3,103 +3,88 @@
 <template>
     <div class="doc" :style="accent_color ? { '--doc-accent': accent_color } : {}">
         <!-- Seite 1: Titelseite -->
-        <section class="doc-page">
-            <header class="doc-header">
-                <img v-if="company_logo" :src="company_logo" class="doc-logo" alt="">
-                <span v-else />
-                <div class="doc-number">
-                    <div class="doc-number__label">{{ $t('Expose.expose_number') }}</div>
-                    <div class="doc-number__value">{{ car_document.expose_number }}</div>
-                    <div class="doc-number__sub">{{ $t('PriceTag.vehicle_number') }} {{ car_document.vehicle_number }}</div>
-                </div>
-            </header>
-            <div class="doc-body">
-                <h1 class="doc-title">
-                    <span class="doc-title__make">{{ car_document.c_m }}</span>
-                    {{ car_document.c_mt }}
-                </h1>
-                <div class="doc-subtitle">{{ car_document.c_color }}</div>
-                <div v-if="images[0]" class="doc-hero" :style="{ backgroundImage: `url(${images[0]})` }" />
-                <div class="doc-facts">
-                    <div v-for="fact in facts" :key="fact.key" class="doc-fact">
-                        <div class="doc-fact__label">{{ $t('PriceTag.' + fact.key) }}</div>
-                        <div class="doc-fact__value">{{ fact.value }}</div>
-                    </div>
-                </div>
-                <div class="doc-price">
-                    <span class="doc-price__label">{{ $t('PriceTag.price') }}</span>
-                    <span class="doc-price__value">{{ money(car_document.asking_price) }}</span>
-                </div>
-            </div>
-            <footer class="doc-footer">
-                <span>{{ $t('PriceTag.page', { n: 1, total: 3 }) }}</span>
-                <span>{{ car_document.expose_number }}</span>
-            </footer>
-        </section>
+        <DocumentPage v-bind="page_props(1)">
+            <h1 class="doc-title">
+                <span class="doc-title__make">{{ car_document.c_m }}</span>
+                {{ car_document.c_mt }}
+            </h1>
 
-        <!-- Seite 2: Technische Daten, Ausstattung, Beschreibung -->
-        <section class="doc-page">
-            <header class="doc-header">
-                <img v-if="company_logo" :src="company_logo" class="doc-logo" alt="">
-                <span v-else />
-                <div class="doc-number">
-                    <div class="doc-number__label">{{ $t('Expose.expose_number') }}</div>
-                    <div class="doc-number__value">{{ car_document.expose_number }}</div>
-                    <div class="doc-number__sub">{{ car_document.c_m }} {{ car_document.c_mt }}</div>
-                </div>
-            </header>
-            <div class="doc-body">
-                <h2 class="doc-heading">{{ $t('Expose.technical_data') }}</h2>
-                <table class="doc-table">
-                    <tr v-for="row in technical_rows" :key="row.key">
-                        <td>{{ $t('Expose.fields.' + row.key) }}</td>
-                        <td>{{ row.value }}</td>
-                    </tr>
-                </table>
-                <template v-if="car_document.tag_equipment">
-                    <h2 class="doc-heading">{{ $t('Expose.equipment') }}</h2>
-                    <div class="doc-list">{{ car_document.tag_equipment }}</div>
-                </template>
-                <template v-if="car_document.description">
-                    <h2 class="doc-heading">{{ $t('Expose.description') }}</h2>
-                    <div class="doc-text">{{ car_document.description }}</div>
-                </template>
-            </div>
-            <footer class="doc-footer">
-                <span>{{ $t('PriceTag.page', { n: 2, total: 3 }) }}</span>
-                <span>{{ car_document.expose_number }}</span>
-            </footer>
-        </section>
+            <div v-if="images[0]" class="doc-hero" :style="{ backgroundImage: `url(${images[0]})` }" />
 
-        <!-- Seite 3: Verbrauch und CO₂ -->
-        <section class="doc-page">
-            <header class="doc-header">
-                <img v-if="company_logo" :src="company_logo" class="doc-logo" alt="">
-                <span v-else />
-                <div class="doc-number">
-                    <div class="doc-number__label">{{ $t('Expose.expose_number') }}</div>
-                    <div class="doc-number__value">{{ car_document.expose_number }}</div>
-                    <div class="doc-number__sub">{{ car_document.c_m }} {{ car_document.c_mt }}</div>
+            <div v-if="facts.length" class="doc-facts doc-facts--top doc-facts--compact">
+                <div v-for="fact in facts" :key="fact.key" class="doc-fact">
+                    <div class="doc-fact__label">{{ $t('PriceTag.' + fact.key) }}</div>
+                    <div class="doc-fact__value">{{ fact.value }}</div>
                 </div>
-            </header>
-            <div class="doc-body">
-                <EfficiencyBlock :car_document="car_document" />
-                <div class="doc-note" style="margin-top: 16mm">{{ $t('Expose.terms') }}</div>
             </div>
-            <footer class="doc-footer">
-                <span>{{ $t('PriceTag.page', { n: 3, total: 3 }) }}</span>
-                <span>{{ car_document.expose_number }}</span>
-            </footer>
-        </section>
+
+            <div v-if="car_document.expose_message" class="doc-text doc-message">{{ car_document.expose_message }}</div>
+
+            <div class="doc-price doc-price--compact">
+                <span class="doc-price__label">{{ $t('PriceTag.price') }}</span>
+                <span class="doc-price__value">{{ money(car_document.asking_price) }}</span>
+            </div>
+
+            <div v-if="contact_cards.length" class="doc-contact">
+                <div v-for="card in contact_cards" :key="card.key" class="doc-contact__card">
+                    <div class="doc-fact__label">{{ $t('Expose.' + card.key) }}</div>
+                    <div v-for="line in card.lines" :key="line" class="doc-contact__line">{{ line }}</div>
+                </div>
+            </div>
+        </DocumentPage>
+
+        <!-- Seite 2: Ausstattung -->
+        <DocumentPage v-if="has_equipment_page" v-bind="page_props(2)">
+            <template v-if="highlight_lines.length">
+                <h2 class="doc-heading">{{ $t('Expose.highlights') }}</h2>
+                <ul class="doc-highlights">
+                    <li v-for="line in highlight_lines" :key="line">{{ line }}</li>
+                </ul>
+            </template>
+            <template v-if="equipment_lines.length">
+                <h2 class="doc-heading">{{ $t('Expose.equipment') }}</h2>
+                <ul class="doc-list doc-list--small">
+                    <li v-for="line in equipment_lines" :key="line">{{ line }}</li>
+                </ul>
+            </template>
+            <template v-if="car_document.description">
+                <h2 class="doc-heading">{{ $t('Expose.description') }}</h2>
+                <div class="doc-text">{{ car_document.description }}</div>
+            </template>
+        </DocumentPage>
+
+        <!-- Technische Daten und Verbrauch -->
+        <DocumentPage v-bind="page_props(technical_page_number)">
+            <h2 class="doc-heading">{{ $t('Expose.technical_data') }}</h2>
+            <table class="doc-table">
+                <tr v-for="row in technical_rows" :key="row.key">
+                    <td>{{ $t('Expose.fields.' + row.key) }}</td>
+                    <td>{{ row.value }}</td>
+                </tr>
+            </table>
+            <EfficiencyBlock :car_document="car_document" />
+            <div v-if="car_document.terms" class="doc-note doc-note--bottom">{{ car_document.terms }}</div>
+        </DocumentPage>
+
+        <!-- Fotoseiten: alle Fotos, sechs pro Seite -->
+        <DocumentPage v-for="(group, i) in photo_groups" :key="i" v-bind="page_props(technical_page_number + 1 + i)">
+            <h2 class="doc-heading">{{ $t('Expose.photos') }}</h2>
+            <div class="doc-photos">
+                <div v-for="image in group" :key="image" class="doc-photos__item" :style="{ backgroundImage: `url(${image})` }" />
+            </div>
+        </DocumentPage>
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import DocumentPage from './document-page.vue';
 import EfficiencyBlock from './efficiency-block.vue';
-import { carDocumentFacts, formatMoney as money, formatMonthYear, formatKm, formatPower } from './document-format.js';
+import { carDocumentFacts, carDocumentTechnicalRows, formatMoney as money, formatMonthYear, formatKm, formatPower, formatPaint, filled, textLines } from './document-format.js';
 import './documents.css';
+
+const PHOTOS_PER_PAGE = 6;
 
 const props = defineProps({
     car_document: { type: Object, required: true },
@@ -111,24 +96,56 @@ const props = defineProps({
 const { t } = useI18n();
 
 const facts = computed(() => carDocumentFacts(props.car_document));
+const highlight_lines = computed(() => textLines(props.car_document.equipment_highlights));
+const equipment_lines = computed(() => textLines(props.car_document.tag_equipment));
 
+const has_equipment_page = computed(() =>
+    highlight_lines.value.length > 0 || equipment_lines.value.length > 0 || !!props.car_document.description
+);
+const technical_page_number = computed(() => (has_equipment_page.value ? 3 : 2));
+
+const photo_groups = computed(() => {
+    const groups = [];
+    for (let i = 0; i < props.images.length; i += PHOTOS_PER_PAGE) {
+        groups.push(props.images.slice(i, i + PHOTOS_PER_PAGE));
+    }
+    return groups;
+});
+const total_pages = computed(() => technical_page_number.value + photo_groups.value.length);
+
+// Alle technischen Angaben in einer Tabelle; leere Zeilen entfallen
 const technical_rows = computed(() => {
     const c = props.car_document;
-    return [
+    return filled([
         { key: 'first_registration', value: formatMonthYear(c.c_d) },
         { key: 'mileage', value: formatKm(c.c_km) },
         { key: 'fuel', value: c.fuel_type },
         { key: 'power', value: formatPower(c.power_kw) },
         { key: 'transmission', value: c.transmission },
         { key: 'engine_code', value: c.engine_code },
-        { key: 'c_color', value: c.c_color },
-        { key: 'paint_code', value: c.paint_code },
-        { key: 'doors', value: c.doors },
-        { key: 'seats', value: c.seats },
-        { key: 'previous_owners', value: c.previous_owners },
-        { key: 'accident_free', value: c.accident_free == null ? null : t(c.accident_free ? 'Expose.yes' : 'Expose.no') },
+        { key: 'paint', value: formatPaint(c.c_color, c.paint_code) },
         { key: 'hu', value: formatMonthYear(c.c_hu) },
-        { key: 'c_fin', value: c.c_fin },
-    ].filter(row => row.value !== null && row.value !== undefined && row.value !== '');
+        ...carDocumentTechnicalRows(c, t),
+    ]);
 });
+
+// Ansprechpartner und Fahrzeugstandort; Karten ohne Angaben entfallen
+const contact_cards = computed(() => {
+    const c = props.car_document;
+    return [
+        { key: 'contact', lines: [c.contact_name, c.contact_phone, c.contact_email].filter(Boolean) },
+        { key: 'location', lines: textLines(c.vehicle_location) },
+    ].filter(card => card.lines.length);
+});
+
+function page_props(page) {
+    return {
+        number_label: t('Expose.expose_number'),
+        number_value: props.car_document.expose_number,
+        number_sub: `${t('PriceTag.vehicle_number')} ${props.car_document.vehicle_number}`,
+        company_logo: props.company_logo,
+        page,
+        total: total_pages.value,
+    };
+}
 </script>

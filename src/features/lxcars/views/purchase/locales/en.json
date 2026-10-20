@@ -57,7 +57,20 @@
             "save": "Save",
             "price_tag_section": "Price tag",
             "tag_equipment": "Equipment (one line per item)",
-            "details_section": "Vehicle details (for price tag and brochure)"
-        }
+            "details_section": "Vehicle details (for price tag and brochure)",
+            "consumption_unit": "Unit",
+            "equipment_highlights": "Equipment highlights (one line per item)",
+            "expose_section": "Brochure",
+            "contact_name": "Contact person",
+            "contact_phone": "Phone",
+            "contact_email": "Email",
+            "expose_message": "Message to the prospect (empty = default text from settings)",
+            "add_photos": "Add photos"
+        },
+        "sale_type": {
+            "commercial": "Commercial",
+            "private": "Private sale"
+        },
+        "show_logo": "Show logo"
     }
 }

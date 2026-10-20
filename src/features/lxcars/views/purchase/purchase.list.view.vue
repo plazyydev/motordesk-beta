@@ -166,6 +166,12 @@
                                 <v-text-field v-model="form.sold_date" type="date" :label="$t('PurchaseView.dialog.sold_date')" variant="outlined" density="compact" />
                             </v-col>
                         </template>
+                        <v-col cols="12">
+                            <v-btn-toggle v-model="form.sale_type" mandatory density="compact" color="primary" variant="outlined" divided>
+                                <v-btn value="commercial">{{ $t('PurchaseView.sale_type.commercial') }}</v-btn>
+                                <v-btn value="private">{{ $t('PurchaseView.sale_type.private') }}</v-btn>
+                            </v-btn-toggle>
+                        </v-col>
                         <v-col cols="12" class="text-subtitle-2">{{ $t('PurchaseView.dialog.price_tag_section') }}</v-col>
                         <v-col cols="6" sm="4">
                             <v-text-field v-model="form.fuel_type" :label="$t('PriceTag.fuel')" variant="outlined" density="compact" />
@@ -181,6 +187,15 @@
                         </v-col>
                         <v-col cols="6" sm="6">
                             <v-text-field v-model.number="form.consumption_combined" type="number" suffix="l/100 km" :label="$t('PriceTag.consumption')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model.number="form.consumption_city" type="number" :suffix="form.consumption_unit" :label="$t('PriceTag.consumption_city')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="4">
+                            <v-text-field v-model.number="form.consumption_highway" type="number" :suffix="form.consumption_unit" :label="$t('PriceTag.consumption_highway')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                            <v-select v-model="form.consumption_unit" :items="consumption_units" :label="$t('PurchaseView.dialog.consumption_unit')" variant="outlined" density="compact" />
                         </v-col>
                         <v-col cols="12">
                             <v-textarea v-model="form.tag_equipment" :label="$t('PurchaseView.dialog.tag_equipment')" rows="3" auto-grow variant="outlined" density="compact" />
@@ -211,6 +226,37 @@
                             <v-textarea v-model="form.description" :label="$t('Expose.description')" rows="3" auto-grow variant="outlined" density="compact" />
                         </v-col>
                         <v-col cols="12">
+                            <v-textarea v-model="form.equipment_highlights" :label="$t('PurchaseView.dialog.equipment_highlights')" rows="2" auto-grow variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12" class="text-subtitle-2">{{ $t('PurchaseView.dialog.expose_section') }}</v-col>
+                        <v-col cols="12" sm="6">
+                            <v-text-field v-model="form.contact_name" :label="$t('PurchaseView.dialog.contact_name')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="3">
+                            <v-text-field v-model="form.contact_phone" :label="$t('PurchaseView.dialog.contact_phone')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="6" sm="3">
+                            <v-text-field v-model="form.contact_email" :label="$t('PurchaseView.dialog.contact_email')" variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12">
+                            <v-textarea v-model="form.vehicle_location" :label="$t('Expose.location')" rows="2" auto-grow variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col cols="12">
+                            <v-textarea v-model="form.expose_message" :label="$t('PurchaseView.dialog.expose_message')" rows="3" auto-grow variant="outlined" density="compact" />
+                        </v-col>
+                        <v-col v-if="form.c_id" cols="12">
+                            <div class="text-subtitle-2 mb-1">{{ $t('Expose.photos') }}</div>
+                            <div class="d-flex flex-wrap ga-2 mb-2">
+                                <div v-for="name in photos" :key="name" class="photo-thumb" :style="{ backgroundImage: `url(${photoUrl(form.c_id, name)})` }">
+                                    <v-btn icon="mdi-close" size="x-small" color="error" class="photo-thumb__delete" @click="removePhoto(name)" />
+                                </div>
+                            </div>
+                            <v-btn prepend-icon="mdi-camera-plus" variant="tonal" :loading="photo_uploading" @click="photo_input.click()">
+                                {{ $t('PurchaseView.dialog.add_photos') }}
+                            </v-btn>
+                            <input ref="photo_input" type="file" accept="image/*" multiple hidden @change="addPhotos">
+                        </v-col>
+                        <v-col cols="12">
                             <v-textarea v-model="form.note" :label="$t('PurchaseView.dialog.note')" rows="2" auto-grow variant="outlined" density="compact" />
                         </v-col>
                     </v-row>
@@ -230,13 +276,14 @@
                 <v-card-title class="d-flex align-center">
                     {{ document_kind === 'expose' ? $t('Expose.title') : $t('PriceTag.title') }}
                     <v-spacer />
+                    <v-switch v-model="show_logo" :label="$t('PurchaseView.show_logo')" density="compact" hide-details color="primary" class="mr-4" />
                     <v-btn prepend-icon="mdi-printer" color="primary" variant="flat" @click="printDocument">{{ $t('PriceTag.print') }}</v-btn>
                 </v-card-title>
                 <v-card-text class="document-preview">
                     <div ref="document_area" class="document-print-area">
                         <template v-if="car_document">
-                            <Expose v-if="document_kind === 'expose'" :car_document="car_document" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
-                            <PriceTag v-else :car_document="car_document" :company_logo="branding.companyLogo" :accent_color="branding.companyAccentColor" />
+                            <Expose v-if="document_kind === 'expose'" :car_document="car_document" :company_logo="show_logo ? branding.companyLogo : ''" :accent_color="branding.companyAccentColor" :images="document_images" />
+                            <PriceTag v-else :car_document="car_document" :company_logo="show_logo ? branding.companyLogo : ''" :accent_color="branding.companyAccentColor" />
                         </template>
                     </div>
                 </v-card-text>
@@ -264,6 +311,12 @@ const document_dialog = ref(false);
 const document_kind = ref('price_tag');
 const document_area = ref(null);
 const car_document = ref(null);
+const show_logo = ref(true);
+const document_images = ref([]);
+const photos = ref([]);
+const photo_input = ref(null);
+const photo_uploading = ref(false);
+const consumption_units = ['l/100 km', 'kWh/100 km', 'kg/100 km'];
 
 const status_keys = ['', 'purchased', 'listed', 'reserved', 'sold'];
 const money_fields = ['purchase_price', 'costs_repair', 'costs_preparation', 'costs_transport', 'costs_other'];
@@ -318,7 +371,9 @@ async function load() {
 function openDialog(item = null) {
     form.value = item
         ? { ...item }
-        : { status: 'purchased', desired_margin_percent: 10, purchase_date: new Date().toISOString().slice(0, 10) };
+        : { status: 'purchased', sale_type: 'commercial', consumption_unit: 'l/100 km', desired_margin_percent: 10, purchase_date: new Date().toISOString().slice(0, 10) };
+    photos.value = [];
+    if (item) loadPhotos(item.c_id);
     car_options.value = item ? [{ c_id: item.c_id, label: [item.c_ln, item.c_mt].filter(Boolean).join(' ') }] : [];
     dialog.value = true;
 }
@@ -355,8 +410,52 @@ async function openDocument(item, kind) {
         car_document.value = kind === 'expose'
             ? await store.createCarExpose(item.c_id)
             : await store.loadCarDocumentData(item.c_id);
+        document_images.value = [];
+        if (kind === 'expose') {
+            const names = await store.loadCarPhotos(item.c_id);
+            document_images.value = names.map(name => photoUrl(item.c_id, name));
+        }
+        // Privatverkauf: Logo standardmaessig aus, laesst sich im Dialog umschalten
+        show_logo.value = car_document.value.sale_type !== 'private';
         document_kind.value = kind;
         document_dialog.value = true;
+    } catch (err) {
+        error.value = err?.message || '';
+    }
+}
+
+/** Bild-URL ueber den vorhandenen Fahrzeug-Dateimanager (vfPreview) */
+function photoUrl(c_id, name) {
+    return `/api/customer_vendor/?${new URLSearchParams({ action: 'vfPreview', c_id, path: 'fotos/' + name })}`;
+}
+
+async function loadPhotos(c_id) {
+    try {
+        photos.value = await store.loadCarPhotos(c_id);
+    } catch (err) {
+        error.value = err?.message || '';
+    }
+}
+
+async function addPhotos(event) {
+    const files = [...event.target.files];
+    event.target.value = '';
+    if (!files.length) return;
+    photo_uploading.value = true;
+    try {
+        await store.uploadCarPhotos(form.value.c_id, files);
+        await loadPhotos(form.value.c_id);
+    } catch (err) {
+        error.value = err?.message || '';
+    } finally {
+        photo_uploading.value = false;
+    }
+}
+
+async function removePhoto(name) {
+    try {
+        await store.deleteCarPhoto(form.value.c_id, name);
+        await loadPhotos(form.value.c_id);
     } catch (err) {
         error.value = err?.message || '';
     }
@@ -370,12 +469,16 @@ function printDocument() {
     const styles = [...document.querySelectorAll('style, link[rel="stylesheet"]')].map(node => node.outerHTML).join('');
     frame.contentDocument.write(`<!doctype html><html><head><meta charset="utf-8">${styles}</head><body style="margin:0">${document_area.value.innerHTML}</body></html>`);
     frame.contentDocument.close();
-    frame.onload = () => {
+    let printed = false;
+    const print = () => {
+        if (printed) return;
+        printed = true;
         frame.contentWindow.print();
         setTimeout(() => frame.remove(), 1000);
     };
+    frame.onload = print;
     // Falls das Dokument schon geladen ist, onload aber nicht mehr feuert
-    if (frame.contentDocument.readyState === 'complete') frame.onload();
+    if (frame.contentDocument.readyState === 'complete') print();
 }
 
 function statusColor(value) {
@@ -397,6 +500,9 @@ watch([search, status], () => {
     clearTimeout(timer);
     timer = setTimeout(load, 300);
 });
+watch(() => form.value.c_id, c_id => {
+    if (dialog.value && c_id && !form.value.id) loadPhotos(c_id);
+});
 watch(car_search, query => {
     if (!dialog.value || form.value.id) return;
     clearTimeout(timer);
@@ -408,6 +514,8 @@ onMounted(load);
 
 <style>
 .document-preview { overflow: auto; }
+.photo-thumb { width: 88px; height: 66px; border-radius: 4px; background: #eee center / cover no-repeat; position: relative; }
+.photo-thumb__delete { position: absolute; top: 2px; right: 2px; }
 .document-print-area { zoom: 0.5; width: max-content; margin: 0 auto; }
 .document-print-area .doc-page { margin-bottom: 8mm; box-shadow: 0 0 6px rgba(0, 0, 0, .3); }
 </style>

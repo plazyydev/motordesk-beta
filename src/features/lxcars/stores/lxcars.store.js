@@ -161,6 +161,56 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
     }
 
     /**
+     * Laedt die Dateinamen der Fahrzeugfotos (Ordner fotos)
+     *
+     * @param {number} c_id - Fahrzeug-ID
+     * @return {Promise<string[]>} photos
+     */
+    async function loadCarPhotos(c_id) {
+        const response = await axios.post('/api/lxcars/', { action: 'getCarPhotos', c_id });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error loading car photos: ' + response.data.text);
+        }
+        return response.data.payload.photos;
+    }
+
+    /**
+     * Laedt Fahrzeugfotos in den Ordner fotos hoch (ueber den Fahrzeug-Dateimanager)
+     *
+     * @param {number} c_id - Fahrzeug-ID
+     * @param {File[]} files - Bilddateien
+     */
+    async function uploadCarPhotos(c_id, files) {
+        for (const file of files) {
+            const form_data = new FormData();
+            form_data.append('action', 'vfUpload');
+            form_data.append('c_id', c_id);
+            form_data.append('path', 'fotos');
+            form_data.append('file', file);
+            const response = await axios.post('/api/customer_vendor/', form_data);
+
+            if (!response.data.success) {
+                throw new ApiError('ApiError', response.data.text, 'Error uploading car photo: ' + response.data.text);
+            }
+        }
+    }
+
+    /**
+     * Loescht ein Fahrzeugfoto
+     *
+     * @param {number} c_id - Fahrzeug-ID
+     * @param {string} name - Dateiname
+     */
+    async function deleteCarPhoto(c_id, name) {
+        const response = await axios.post('/api/lxcars/', { action: 'deleteCarPhoto', c_id, name });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error deleting car photo: ' + response.data.text);
+        }
+    }
+
+    /**
      * Speichert einen Ankauf (Anlegen/Aktualisieren) fuer ein Fahrzeug
      *
      * @param {Object} car_purchase - Felder der Tabelle car_purchases (inkl. c_id)
@@ -1366,6 +1416,9 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
         loadCarPurchases,
         loadCarDocumentData,
         createCarExpose,
+        loadCarPhotos,
+        uploadCarPhotos,
+        deleteCarPhoto,
         saveCarPurchase,
         resolveKtype,
         getAagEngine,

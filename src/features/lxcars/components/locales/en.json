@@ -17,7 +17,10 @@
         "consumption": "Fuel consumption (combined)",
         "disclaimer": "Fuel consumption and CO₂ emissions according to WLTP.",
         "engine_code": "Engine code",
-        "paint": "Paint"
+        "paint": "Paint",
+        "consumption_combined": "Consumption combined",
+        "consumption_city": "City (short trips)",
+        "consumption_highway": "Motorway (long trips)"
     },
     "Expose": {
         "title": "Brochure",
@@ -43,7 +46,12 @@
             "previous_owners": "Previous owners",
             "accident_free": "Accident-free",
             "hu": "Inspection until",
-            "c_fin": "VIN"
-        }
+            "c_fin": "VIN",
+            "paint": "Paint"
+        },
+        "highlights": "Equipment highlights",
+        "photos": "Photos",
+        "contact": "Contact",
+        "location": "Vehicle location"
     }
 }

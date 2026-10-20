@@ -73,3 +73,49 @@ function createCarExpose($data) {
     }
     resultInfo(true, '', json_decode($row['result'], true));
 }
+
+/**
+ * Listet die Fotos eines Fahrzeugs (Ordner fahrzeuge/{c_id}/fotos, alphabetisch sortiert)
+ *
+ * Die Bilder selbst werden ueber vfPreview (c_id + path "fotos/<name>") ausgeliefert.
+ *
+ * @param int $data['c_id'] Fahrzeug-ID
+ * @testdata {"c_id": 1}
+ */
+function getCarPhotos($data) {
+    $cId = intval($data['c_id'] ?? 0);
+    if ($cId <= 0) {
+        resultInfo(false, 'VALIDATION_ERROR', 'Fahrzeug fehlt');
+        return;
+    }
+    $dir = fmDataDir() . '/fahrzeuge/' . $cId . '/fotos';
+    $photos = [];
+    if (is_dir($dir)) {
+        foreach (scandir($dir) as $name) {
+            if (preg_match('/\.(jpe?g|png|webp)$/i', $name) && is_file($dir . '/' . $name)) {
+                $photos[] = $name;
+            }
+        }
+    }
+    natcasesort($photos);
+    resultInfo(true, '', ['photos' => array_values($photos)]);
+}
+
+/**
+ * Loescht ein Foto eines Fahrzeugs
+ *
+ * @param int $data['c_id'] Fahrzeug-ID
+ * @param string $data['name'] Dateiname im Ordner fotos
+ * @testdata {"c_id": 1, "name": "foto1.jpg"}
+ */
+function deleteCarPhoto($data) {
+    $cId = intval($data['c_id'] ?? 0);
+    $name = basename($data['name'] ?? '');
+    $file = fmDataDir() . '/fahrzeuge/' . $cId . '/fotos/' . $name;
+    if ($cId <= 0 || $name === '' || !is_file($file)) {
+        resultInfo(false, 'NOT_FOUND', 'Foto nicht gefunden');
+        return;
+    }
+    unlink($file);
+    resultInfo(true);
+}

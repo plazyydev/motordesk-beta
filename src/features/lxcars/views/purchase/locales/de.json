@@ -57,7 +57,20 @@
             "save": "Speichern",
             "price_tag_section": "Preisschild",
             "tag_equipment": "Ausstattung (eine Zeile pro Punkt)",
-            "details_section": "Fahrzeugdetails (für Preisschild und Exposé)"
-        }
+            "details_section": "Fahrzeugdetails (für Preisschild und Exposé)",
+            "consumption_unit": "Einheit",
+            "equipment_highlights": "Ausstattungs-Highlights (eine Zeile pro Punkt)",
+            "expose_section": "Exposé",
+            "contact_name": "Ansprechpartner",
+            "contact_phone": "Telefon",
+            "contact_email": "E-Mail",
+            "expose_message": "Nachricht an den Interessenten (leer = Standardtext aus den Einstellungen)",
+            "add_photos": "Fotos hinzufügen"
+        },
+        "sale_type": {
+            "commercial": "Gewerblich",
+            "private": "Privatverkauf"
+        },
+        "show_logo": "Logo anzeigen"
     }
 }
