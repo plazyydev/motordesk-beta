@@ -1,0 +1,57 @@
+{
+    "PurchaseView": {
+        "routes": { "purchases": "/ankauf" },
+        "title": "Ankauf & Kalkulation",
+        "entries": "Einträge",
+        "new": "Ankauf erfassen",
+        "search": "Suche",
+        "refresh": "Aktualisieren",
+        "noData": "Keine Ankäufe gefunden",
+        "saved": "Gespeichert",
+        "status": {
+            "all": "Alle",
+            "purchased": "Angekauft",
+            "listed": "Inseriert",
+            "reserved": "Reserviert",
+            "sold": "Verkauft"
+        },
+        "summary": {
+            "total_costs": "Gesamtkosten",
+            "total_asking_price": "Angebotspreise (offen)",
+            "total_profit": "Gewinn (verkauft)"
+        },
+        "headers": {
+            "c_ln": "Kennzeichen",
+            "c_mt": "Fahrzeug",
+            "purchase_date": "Ankauf",
+            "total_costs": "Kosten",
+            "target_price": "Zielpreis",
+            "asking_price": "Angebotspreis",
+            "profit": "Gewinn",
+            "days_in_stock": "Standzeit",
+            "status": "Status"
+        },
+        "days": "{n} Tage",
+        "dialog": {
+            "title": "Ankauf & Kalkulation",
+            "car": "Fahrzeug",
+            "seller": "Verkäufer",
+            "purchase_date": "Ankaufsdatum",
+            "purchase_price": "Einkaufspreis",
+            "costs_repair": "Reparatur",
+            "costs_preparation": "Aufbereitung",
+            "costs_transport": "Transport",
+            "costs_other": "Sonstige Kosten",
+            "desired_margin_percent": "Wunschmarge (%)",
+            "asking_price": "Angebotspreis",
+            "sold_price": "Verkaufspreis",
+            "sold_date": "Verkaufsdatum",
+            "status": "Status",
+            "note": "Notiz",
+            "total_costs": "Gesamtkosten",
+            "target_price": "Zielverkaufspreis",
+            "cancel": "Abbrechen",
+            "save": "Speichern"
+        }
+    }
+}

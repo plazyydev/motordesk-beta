@@ -66,6 +66,17 @@
       icon
       variant="text"
       color="primary"
+      :to="{ name: 'car-purchases' }"
+      :title="$t('PurchaseView.title')"
+      class="motordesk-quick-action"
+    >
+      <v-icon>mdi-calculator-variant</v-icon>
+    </v-btn>
+    <v-btn
+      v-if="oserpData.isLxCars()"
+      icon
+      variant="text"
+      color="primary"
       :to="{ name: 'fahrzeug-neu' }"
       :title="$t('CarView.newCar')"
       class="motordesk-quick-action"

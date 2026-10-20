@@ -833,3 +833,110 @@ DO $$ BEGIN
             EXECUTE FUNCTION notify_missing_order();
     END IF;
 END $$;
+
+-- Ankauf & Kalkulation (Fuhrpark-Verkauf)
+-- Pro Fahrzeug ein Ankaufsdatensatz; alle Kosten- und Preisberechnungen liegen in car_purchases_calc().
+CREATE TABLE IF NOT EXISTS car_purchases (
+    id                    INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    c_id                  INTEGER NOT NULL REFERENCES cars_lxcars(c_id) ON DELETE CASCADE,
+    purchase_date         date DEFAULT current_date,
+    seller                text,
+    purchase_price        numeric(12,2) NOT NULL DEFAULT 0,
+    costs_repair          numeric(12,2) NOT NULL DEFAULT 0,
+    costs_preparation     numeric(12,2) NOT NULL DEFAULT 0,
+    costs_transport       numeric(12,2) NOT NULL DEFAULT 0,
+    costs_other           numeric(12,2) NOT NULL DEFAULT 0,
+    desired_margin_percent numeric(6,2) NOT NULL DEFAULT 10,
+    asking_price          numeric(12,2),
+    sold_price            numeric(12,2),
+    sold_date             date,
+    status                text NOT NULL DEFAULT 'purchased',
+    note                  text,
+    created_at            timestamp NOT NULL DEFAULT now(),
+    CONSTRAINT car_purchases_c_id_unique UNIQUE (c_id),
+    CONSTRAINT car_purchases_status_check CHECK (status IN ('purchased', 'listed', 'reserved', 'sold'))
+);
+CREATE INDEX IF NOT EXISTS idx_car_purchases_status ON car_purchases(status);
+
+-- Verlauf des Angebotspreises (der Verkaufspreis aendert sich laufend)
+CREATE TABLE IF NOT EXISTS car_price_history (
+    id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    c_id        INTEGER NOT NULL REFERENCES cars_lxcars(c_id) ON DELETE CASCADE,
+    asking_price numeric(12,2) NOT NULL,
+    changed_at  timestamp NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_car_price_history_c_id ON car_price_history(c_id);
+
+-- Liefert alle Ankaeufe inkl. berechneter Werte als ein JSON-Objekt
+CREATE OR REPLACE FUNCTION car_purchases_calc(p_search text DEFAULT '', p_status text DEFAULT '') RETURNS json AS $$
+    SELECT json_build_object(
+        'results', COALESCE(json_agg(r ORDER BY r.purchase_date DESC, r.id DESC), '[]'::json),
+        'total_costs', COALESCE(sum(r.total_costs), 0),
+        'total_asking_price', COALESCE(sum(r.asking_price) FILTER (WHERE r.status <> 'sold'), 0),
+        'total_profit', COALESCE(sum(r.profit) FILTER (WHERE r.status = 'sold'), 0)
+    )
+    FROM (
+        SELECT p.*, c.c_ln, c.c_mt, c.c_fin, c.c_km, c.c_d,
+               p.purchase_price + p.costs_repair + p.costs_preparation + p.costs_transport + p.costs_other AS total_costs,
+               round((p.purchase_price + p.costs_repair + p.costs_preparation + p.costs_transport + p.costs_other)
+                     * (1 + p.desired_margin_percent / 100), 2) AS target_price,
+               CASE WHEN p.status = 'sold'
+                    THEN p.sold_price - (p.purchase_price + p.costs_repair + p.costs_preparation + p.costs_transport + p.costs_other)
+                    ELSE p.asking_price - (p.purchase_price + p.costs_repair + p.costs_preparation + p.costs_transport + p.costs_other)
+               END AS profit,
+               (COALESCE(p.sold_date, current_date) - p.purchase_date) AS days_in_stock
+        FROM car_purchases p
+        JOIN cars_lxcars c ON c.c_id = p.c_id
+        WHERE (p_status = '' OR p.status = p_status)
+          AND (p_search = '' OR CONCAT_WS(' ', c.c_ln, c.c_mt, c.c_fin, p.seller) ILIKE '%' || p_search || '%')
+    ) r;
+$$ LANGUAGE sql STABLE;
+
+-- Speichert (Upsert) einen Ankauf und protokolliert Aenderungen des Angebotspreises
+CREATE OR REPLACE FUNCTION car_purchase_save(p jsonb) RETURNS json AS $$
+DECLARE
+    v_c_id integer := (p->>'c_id')::integer;
+    v_old_price numeric;
+BEGIN
+    SELECT asking_price INTO v_old_price FROM car_purchases WHERE c_id = v_c_id;
+
+    INSERT INTO car_purchases (c_id, purchase_date, seller, purchase_price, costs_repair, costs_preparation,
+                               costs_transport, costs_other, desired_margin_percent, asking_price,
+                               sold_price, sold_date, status, note)
+    VALUES (v_c_id,
+            COALESCE(NULLIF(p->>'purchase_date', '')::date, current_date),
+            p->>'seller',
+            COALESCE(NULLIF(p->>'purchase_price', '')::numeric, 0),
+            COALESCE(NULLIF(p->>'costs_repair', '')::numeric, 0),
+            COALESCE(NULLIF(p->>'costs_preparation', '')::numeric, 0),
+            COALESCE(NULLIF(p->>'costs_transport', '')::numeric, 0),
+            COALESCE(NULLIF(p->>'costs_other', '')::numeric, 0),
+            COALESCE(NULLIF(p->>'desired_margin_percent', '')::numeric, 10),
+            NULLIF(p->>'asking_price', '')::numeric,
+            NULLIF(p->>'sold_price', '')::numeric,
+            NULLIF(p->>'sold_date', '')::date,
+            COALESCE(NULLIF(p->>'status', ''), 'purchased'),
+            p->>'note')
+    ON CONFLICT (c_id) DO UPDATE SET
+        purchase_date = EXCLUDED.purchase_date,
+        seller = EXCLUDED.seller,
+        purchase_price = EXCLUDED.purchase_price,
+        costs_repair = EXCLUDED.costs_repair,
+        costs_preparation = EXCLUDED.costs_preparation,
+        costs_transport = EXCLUDED.costs_transport,
+        costs_other = EXCLUDED.costs_other,
+        desired_margin_percent = EXCLUDED.desired_margin_percent,
+        asking_price = EXCLUDED.asking_price,
+        sold_price = EXCLUDED.sold_price,
+        sold_date = EXCLUDED.sold_date,
+        status = EXCLUDED.status,
+        note = EXCLUDED.note;
+
+    IF NULLIF(p->>'asking_price', '') IS NOT NULL
+       AND v_old_price IS DISTINCT FROM (p->>'asking_price')::numeric THEN
+        INSERT INTO car_price_history (c_id, asking_price) VALUES (v_c_id, (p->>'asking_price')::numeric);
+    END IF;
+
+    RETURN json_build_object('c_id', v_c_id);
+END;
+$$ LANGUAGE plpgsql;

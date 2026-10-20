@@ -470,6 +470,11 @@ const router = createRouter({
             props: true,
         },
         {
+            path: i18n.global.t('PurchaseView.routes.purchases'),
+            name: 'car-purchases',
+            component: () => import('@/features/lxcars/views/purchase/purchase.list.view.vue'),
+        },
+        {
             path: i18n.global.t('CarView.routes.manageCars'),
             name: 'car-list',
             component: CarListView,

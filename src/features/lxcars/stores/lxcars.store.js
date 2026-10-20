@@ -112,6 +112,43 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
     }
 
     /**
+     * Laedt die Ankauftabelle inkl. berechneter Werte (Kosten, Zielpreis, Gewinn, Standzeit)
+     *
+     * @param {Object} options - { search, status }
+     * @return {Promise<Object>} { results, total_costs, total_asking_price, total_profit }
+     */
+    async function loadCarPurchases(options = {}) {
+        const response = await axios.post('/api/lxcars/', {
+            action: 'getCarPurchases',
+            search: options.search ?? '',
+            status: options.status ?? ''
+        });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error loading car purchases: ' + response.data.text);
+        }
+        return response.data.payload;
+    }
+
+    /**
+     * Speichert einen Ankauf (Anlegen/Aktualisieren) fuer ein Fahrzeug
+     *
+     * @param {Object} car_purchase - Felder der Tabelle car_purchases (inkl. c_id)
+     * @return {Promise<Object>}
+     */
+    async function saveCarPurchase(car_purchase) {
+        const response = await axios.post('/api/lxcars/', {
+            action: 'saveCarPurchase',
+            ...car_purchase
+        });
+
+        if (!response.data.success) {
+            throw new ApiError('ApiError', response.data.text, 'Error saving car purchase: ' + response.data.text);
+        }
+        return response.data.payload;
+    }
+
+    /**
      * Ermittelt die TecDoc-Ktype-Nummer eines Fahrzeugs ueber AAG-Online
      * (per HSN/TSN oder FIN) und speichert sie serverseitig in cars_lxcars.
      *
@@ -1296,6 +1333,8 @@ export const lxcarsStore = defineStore('lxcarsStore', () => {
         deleteCar,
         loadCar,
         loadCars,
+        loadCarPurchases,
+        saveCarPurchase,
         resolveKtype,
         getAagEngine,
         loadCarOrders,
