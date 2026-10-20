@@ -1,60 +1,114 @@
 /* src/features/lxcars/components/price-tag.css — Preisschild (A4 hochkant, druckfertig) */
 .price-tag {
-    --pt-accent: #0d47a1;
+    --pt-accent: #d1202f;
+    --pt-dark: #1b1b1e;
+    --pt-dark-2: #2b2b30;
+    --pt-text: #f4f4f6;
+    --pt-muted: #9a9aa3;
     width: 210mm;
     height: 297mm;
     box-sizing: border-box;
-    padding: 14mm 16mm;
-    background: #fff;
-    color: #111;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: var(--pt-dark);
+    color: var(--pt-text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
+/* Diagonaler Akzent im Hintergrund */
+.price-tag::before {
+    content: '';
+    position: absolute;
+    top: 52mm;
+    right: -30mm;
+    width: 120mm;
+    height: 200mm;
+    background: linear-gradient(160deg, rgba(209, 32, 47, .18), rgba(209, 32, 47, 0));
+    transform: skewX(-14deg);
+}
+.price-tag > * { position: relative; }
+
 .price-tag__header {
+    background: #fff;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px solid var(--pt-accent);
-    padding-bottom: 6mm;
-    min-height: 26mm;
+    padding: 8mm 16mm;
+    border-bottom: 2.5mm solid var(--pt-accent);
 }
-.price-tag__logo { max-height: 22mm; max-width: 70mm; object-fit: contain; }
-.price-tag__plate { font-size: 14pt; font-weight: 600; color: #555; letter-spacing: 1px; }
-.price-tag__title { margin: 10mm 0 2mm; font-size: 34pt; font-weight: 800; line-height: 1.05; }
-.price-tag__subtitle { font-size: 16pt; color: #555; margin-bottom: 8mm; }
-.price-tag__facts {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4mm 8mm;
-    margin-bottom: 8mm;
+.price-tag__logo { max-height: 24mm; max-width: 95mm; object-fit: contain; }
+.price-tag__plate {
+    font-size: 15pt;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: 2px;
+    border: 2px solid #111;
+    border-radius: 2mm;
+    padding: 1.5mm 4mm;
 }
-.price-tag__fact { border-left: 3px solid var(--pt-accent); padding-left: 4mm; }
-.price-tag__fact-label { font-size: 10pt; text-transform: uppercase; color: #777; letter-spacing: .5px; }
-.price-tag__fact-value { font-size: 18pt; font-weight: 700; }
-.price-tag__equipment { font-size: 13pt; line-height: 1.5; white-space: pre-line; flex: 1; margin-bottom: 6mm; }
+
+.price-tag__body { padding: 12mm 16mm 0; display: flex; flex-direction: column; flex: 1; }
+.price-tag__title {
+    margin: 0;
+    font-size: 36pt;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    line-height: 1.02;
+    letter-spacing: -.5px;
+}
+.price-tag__title-make { color: var(--pt-accent); display: block; font-size: 20pt; letter-spacing: 3px; }
+.price-tag__subtitle { font-size: 13pt; color: var(--pt-muted); margin: 3mm 0 9mm; }
+
+.price-tag__facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-bottom: 9mm; }
+.price-tag__fact {
+    background: var(--pt-dark-2);
+    border-radius: 3mm;
+    padding: 4mm 5mm;
+    border-top: 1.2mm solid var(--pt-accent);
+}
+.price-tag__fact-label { font-size: 8.5pt; text-transform: uppercase; color: var(--pt-muted); letter-spacing: 1px; }
+.price-tag__fact-value { font-size: 15pt; font-weight: 700; margin-top: 1mm; }
+
+.price-tag__equipment {
+    font-size: 12.5pt;
+    line-height: 1.55;
+    white-space: pre-line;
+    flex: 1;
+    column-count: 2;
+    column-gap: 10mm;
+    margin-bottom: 6mm;
+}
+
 .price-tag__price-box {
     background: var(--pt-accent);
-    color: #fff;
-    border-radius: 4mm;
-    padding: 8mm 10mm;
+    transform: skewX(-8deg);
+    border-radius: 3mm;
+    padding: 7mm 12mm;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8mm;
+    margin: 0 -2mm 8mm;
+    box-shadow: 0 3mm 8mm rgba(209, 32, 47, .35);
 }
-.price-tag__price-label { font-size: 14pt; text-transform: uppercase; letter-spacing: 1px; }
-.price-tag__price { font-size: 52pt; font-weight: 800; }
-.price-tag__efficiency { border: 1px solid #ccc; border-radius: 3mm; padding: 5mm 6mm; display: flex; gap: 8mm; align-items: center; }
+.price-tag__price-box > * { transform: skewX(8deg); }
+.price-tag__price-label { font-size: 13pt; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; }
+.price-tag__price { font-size: 56pt; font-weight: 900; font-style: italic; line-height: 1; }
+
+.price-tag__footer { background: #fff; color: #111; padding: 6mm 16mm 5mm; }
+.price-tag__efficiency { display: flex; gap: 10mm; align-items: center; }
 .price-tag__scale { display: flex; flex-direction: column; gap: 1mm; }
 .price-tag__scale-row {
-    height: 6mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 2mm;
-    color: #fff; font-weight: 700; font-size: 10pt; border-radius: 0 3mm 3mm 0;
+    height: 5.5mm; display: flex; align-items: center; justify-content: flex-end; padding: 0 2mm;
+    color: #fff; font-weight: 700; font-size: 9pt; border-radius: 0 3mm 3mm 0;
 }
-.price-tag__scale-row--active { outline: 2px solid #111; font-size: 12pt; }
-.price-tag__efficiency-values { font-size: 11pt; line-height: 1.6; }
-.price-tag__efficiency-values strong { font-size: 13pt; }
-.price-tag__disclaimer { font-size: 8pt; color: #777; margin-top: 4mm; }
+.price-tag__scale-row--active { outline: 2px solid #111; font-size: 11pt; }
+.price-tag__efficiency-values { font-size: 10.5pt; line-height: 1.7; }
+.price-tag__efficiency-values strong { font-size: 12.5pt; }
+.price-tag__disclaimer { font-size: 7.5pt; color: #777; margin-top: 3mm; }
 
 @media print {
     @page { size: A4 portrait; margin: 0; }

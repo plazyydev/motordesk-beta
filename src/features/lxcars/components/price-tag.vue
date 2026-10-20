@@ -8,40 +8,47 @@
             <span class="price-tag__plate">{{ car_price_tag.c_ln }}</span>
         </div>
 
-        <h1 class="price-tag__title">{{ [car_price_tag.c_m, car_price_tag.c_mt].filter(Boolean).join(' ') }}</h1>
-        <div class="price-tag__subtitle">{{ car_price_tag.c_color }}</div>
+        <div class="price-tag__body">
+            <h1 class="price-tag__title">
+                <span class="price-tag__title-make">{{ car_price_tag.c_m }}</span>
+                {{ car_price_tag.c_mt }}
+            </h1>
+            <div class="price-tag__subtitle">{{ car_price_tag.c_color }}</div>
 
-        <div class="price-tag__facts">
-            <div v-for="fact in facts" :key="fact.key" class="price-tag__fact">
-                <div class="price-tag__fact-label">{{ $t('PriceTag.' + fact.key) }}</div>
-                <div class="price-tag__fact-value">{{ fact.value }}</div>
+            <div class="price-tag__facts">
+                <div v-for="fact in facts" :key="fact.key" class="price-tag__fact">
+                    <div class="price-tag__fact-label">{{ $t('PriceTag.' + fact.key) }}</div>
+                    <div class="price-tag__fact-value">{{ fact.value }}</div>
+                </div>
+            </div>
+
+            <div class="price-tag__equipment">{{ car_price_tag.tag_equipment }}</div>
+
+            <div class="price-tag__price-box">
+                <span class="price-tag__price-label">{{ $t('PriceTag.price') }}</span>
+                <span class="price-tag__price">{{ money(car_price_tag.asking_price) }}</span>
             </div>
         </div>
 
-        <div class="price-tag__equipment">{{ car_price_tag.tag_equipment }}</div>
-
-        <div class="price-tag__price-box">
-            <span class="price-tag__price-label">{{ $t('PriceTag.price') }}</span>
-            <span class="price-tag__price">{{ money(car_price_tag.asking_price) }}</span>
-        </div>
-
-        <div class="price-tag__efficiency">
-            <div class="price-tag__scale">
-                <div
-                    v-for="(cls, i) in efficiency_classes"
-                    :key="cls"
-                    class="price-tag__scale-row"
-                    :class="{ 'price-tag__scale-row--active': cls === car_price_tag.efficiency_class }"
-                    :style="{ background: efficiency_colors[i], width: (22 + i * 5) + 'mm' }"
-                >{{ cls }}</div>
+        <div class="price-tag__footer">
+            <div class="price-tag__efficiency">
+                <div class="price-tag__scale">
+                    <div
+                        v-for="(cls, i) in efficiency_classes"
+                        :key="cls"
+                        class="price-tag__scale-row"
+                        :class="{ 'price-tag__scale-row--active': cls === car_price_tag.efficiency_class }"
+                        :style="{ background: efficiency_colors[i], width: (22 + i * 5) + 'mm' }"
+                    >{{ cls }}</div>
+                </div>
+                <div class="price-tag__efficiency-values">
+                    <div>{{ $t('PriceTag.efficiency_class') }}: <strong>{{ car_price_tag.efficiency_class || '-' }}</strong></div>
+                    <div>{{ $t('PriceTag.co2') }}: <strong>{{ car_price_tag.co2_g_km ?? '-' }} g/km</strong></div>
+                    <div>{{ $t('PriceTag.consumption') }}: <strong>{{ car_price_tag.consumption_combined ?? '-' }} l/100 km</strong></div>
+                </div>
             </div>
-            <div class="price-tag__efficiency-values">
-                <div>{{ $t('PriceTag.efficiency_class') }}: <strong>{{ car_price_tag.efficiency_class || '-' }}</strong></div>
-                <div>{{ $t('PriceTag.co2') }}: <strong>{{ car_price_tag.co2_g_km ?? '-' }} g/km</strong></div>
-                <div>{{ $t('PriceTag.consumption') }}: <strong>{{ car_price_tag.consumption_combined ?? '-' }} l/100 km</strong></div>
-            </div>
+            <div class="price-tag__disclaimer">{{ $t('PriceTag.disclaimer') }}</div>
         </div>
-        <div class="price-tag__disclaimer">{{ $t('PriceTag.disclaimer') }}</div>
     </div>
 </template>
 
