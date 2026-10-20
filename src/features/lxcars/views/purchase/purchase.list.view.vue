@@ -166,12 +166,6 @@
                                 <v-text-field v-model="form.sold_date" type="date" :label="$t('PurchaseView.dialog.sold_date')" variant="outlined" density="compact" />
                             </v-col>
                         </template>
-                        <v-col cols="12">
-                            <v-btn-toggle v-model="form.sale_type" mandatory density="compact" color="primary" variant="outlined" divided>
-                                <v-btn value="commercial">{{ $t('PurchaseView.sale_type.commercial') }}</v-btn>
-                                <v-btn value="private">{{ $t('PurchaseView.sale_type.private') }}</v-btn>
-                            </v-btn-toggle>
-                        </v-col>
                         <v-col cols="12" class="text-subtitle-2">{{ $t('PurchaseView.dialog.price_tag_section') }}</v-col>
                         <v-col cols="6" sm="4">
                             <v-text-field v-model="form.fuel_type" :label="$t('PriceTag.fuel')" variant="outlined" density="compact" />
@@ -371,7 +365,7 @@ async function load() {
 function openDialog(item = null) {
     form.value = item
         ? { ...item }
-        : { status: 'purchased', sale_type: 'commercial', consumption_unit: 'l/100 km', desired_margin_percent: 10, purchase_date: new Date().toISOString().slice(0, 10) };
+        : { status: 'purchased', consumption_unit: 'l/100 km', desired_margin_percent: 10, purchase_date: new Date().toISOString().slice(0, 10) };
     photos.value = [];
     if (item) loadPhotos(item.c_id);
     car_options.value = item ? [{ c_id: item.c_id, label: [item.c_ln, item.c_mt].filter(Boolean).join(' ') }] : [];
@@ -415,8 +409,7 @@ async function openDocument(item, kind) {
             const names = await store.loadCarPhotos(item.c_id);
             document_images.value = names.map(name => photoUrl(item.c_id, name));
         }
-        // Privatverkauf: Logo standardmaessig aus, laesst sich im Dialog umschalten
-        show_logo.value = car_document.value.sale_type !== 'private';
+        show_logo.value = true;
         document_kind.value = kind;
         document_dialog.value = true;
     } catch (err) {

@@ -67,10 +67,6 @@
             "expose_message": "Message to the prospect (empty = default text from settings)",
             "add_photos": "Add photos"
         },
-        "sale_type": {
-            "commercial": "Commercial",
-            "private": "Private sale"
-        },
         "show_logo": "Show logo"
     }
 }

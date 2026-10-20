@@ -67,10 +67,6 @@
             "expose_message": "Nachricht an den Interessenten (leer = Standardtext aus den Einstellungen)",
             "add_photos": "Fotos hinzufügen"
         },
-        "sale_type": {
-            "commercial": "Gewerblich",
-            "private": "Privatverkauf"
-        },
         "show_logo": "Logo anzeigen"
     }
 }
