@@ -119,3 +119,28 @@ function deleteCarPhoto($data) {
     unlink($file);
     resultInfo(true);
 }
+
+/**
+ * Daten fuer die Startseite: Kennzahlen, Handlungsbedarf und Fahrzeuge im Bestand
+ *
+ * Alles liefert fleet_dashboard() in einer Abfrage; nur das Titelfoto liegt im Dateisystem
+ * und wird hier ergaenzt (erstes Bild im Ordner fotos).
+ *
+ * @testdata {}
+ */
+function getFleetDashboard($data) {
+    $db = DbhCompany::begin();
+    $row = $db->getOne("SELECT fleet_dashboard() AS result", []);
+    $dashboard = json_decode($row['result'], true);
+    foreach ($dashboard['vehicles'] as &$vehicle) {
+        $vehicle['cover_photo'] = null;
+        $dir = fmDataDir() . '/fahrzeuge/' . intval($vehicle['c_id']) . '/fotos';
+        if (is_dir($dir)) {
+            $names = array_values(array_filter(scandir($dir), fn($name) => preg_match('/\.(jpe?g|png|webp)$/i', $name)));
+            natcasesort($names);
+            $vehicle['cover_photo'] = $names ? reset($names) : null;
+        }
+    }
+    unset($vehicle);
+    resultInfo(true, '', $dashboard);
+}

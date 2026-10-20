@@ -1106,3 +1106,57 @@ BEGIN
     RETURN (v_data::jsonb || jsonb_build_object('expose_number', v_number, 'created_at', now()))::json;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Schwellwerte fuer den Handlungsbedarf auf der Startseite (Tage)
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_stale_days', '45') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_hu_warning_days', '60') ON CONFLICT (key) DO NOTHING;
+INSERT INTO defaults_oserp (key, value) VALUES ('lxcars_price_review_days', '30') ON CONFLICT (key) DO NOTHING;
+
+-- Startseite: Kennzahlen, Handlungsbedarf und Fahrzeuge im Bestand als ein JSON-Objekt
+CREATE OR REPLACE FUNCTION fleet_dashboard() RETURNS json AS $$
+    WITH cfg AS (
+        SELECT COALESCE((SELECT value::integer FROM defaults_oserp WHERE key = 'lxcars_stale_days'), 45) AS stale_days,
+               COALESCE((SELECT value::integer FROM defaults_oserp WHERE key = 'lxcars_hu_warning_days'), 60) AS hu_days,
+               COALESCE((SELECT value::integer FROM defaults_oserp WHERE key = 'lxcars_price_review_days'), 30) AS price_days
+    ), v AS (
+        SELECT p.c_id, p.vehicle_number, p.status, p.asking_price, p.sold_price, p.purchase_date,
+               c.c_ln, c.c_m, c.c_mt, c.c_km, c.c_d, c.c_hu,
+               p.purchase_price + p.costs_repair + p.costs_preparation + p.costs_transport + p.costs_other AS total_costs,
+               (COALESCE(p.sold_date, current_date) - p.purchase_date) AS days_in_stock,
+               (current_date - COALESCE((SELECT max(h.changed_at)::date FROM car_price_history h WHERE h.c_id = p.c_id), p.purchase_date)) AS days_since_price_change
+        FROM car_purchases p
+        JOIN cars_lxcars c ON c.c_id = p.c_id
+    )
+    SELECT json_build_object(
+        'kpis', (
+            SELECT json_build_object(
+                'stock_count', count(*) FILTER (WHERE status <> 'sold'),
+                'listed_count', count(*) FILTER (WHERE status = 'listed'),
+                'stock_asking_total', COALESCE(sum(asking_price) FILTER (WHERE status <> 'sold'), 0),
+                'stock_cost_total', COALESCE(sum(total_costs) FILTER (WHERE status <> 'sold'), 0),
+                'sold_count', count(*) FILTER (WHERE status = 'sold'),
+                'sold_profit_total', COALESCE(sum(sold_price - total_costs) FILTER (WHERE status = 'sold'), 0),
+                'avg_days_in_stock', round(avg(days_in_stock) FILTER (WHERE status <> 'sold'))
+            ) FROM v
+        ),
+        'attention', COALESCE((
+            SELECT json_agg(a ORDER BY a.sort_value) FROM (
+                SELECT v.c_id, v.vehicle_number, concat_ws(' ', v.c_m, v.c_mt) AS title, 'hu_due' AS kind,
+                       (v.c_hu - current_date) AS value, (v.c_hu - current_date) AS sort_value
+                FROM v, cfg WHERE v.status <> 'sold' AND v.c_hu IS NOT NULL AND v.c_hu <= current_date + cfg.hu_days
+                UNION ALL
+                SELECT v.c_id, v.vehicle_number, concat_ws(' ', v.c_m, v.c_mt), 'stale', v.days_in_stock, 1000 - v.days_in_stock
+                FROM v, cfg WHERE v.status IN ('purchased', 'listed') AND v.days_in_stock >= cfg.stale_days
+                UNION ALL
+                SELECT v.c_id, v.vehicle_number, concat_ws(' ', v.c_m, v.c_mt), 'price_review', v.days_since_price_change, 2000 - v.days_since_price_change
+                FROM v, cfg WHERE v.status = 'listed' AND v.days_since_price_change >= cfg.price_days
+            ) a
+        ), '[]'::json),
+        'vehicles', COALESCE((
+            SELECT json_agg(r ORDER BY r.purchase_date DESC, r.c_id DESC) FROM (
+                SELECT c_id, vehicle_number, status, asking_price, purchase_date, c_ln, c_m, c_mt, c_km, c_d, days_in_stock
+                FROM v WHERE status <> 'sold' ORDER BY purchase_date DESC, c_id DESC LIMIT 12
+            ) r
+        ), '[]'::json)
+    );
+$$ LANGUAGE sql STABLE;
